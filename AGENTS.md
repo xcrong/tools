@@ -208,3 +208,101 @@ import Component from './Component.svelte';
 - [ ] Documentation updated if necessary
 
 Remember: **Never consider frontend work complete until `npm run check` passes cleanly.**
+
+---
+
+## Project Evolution History
+
+### Cyberpunk Terminal Design System (2026-03-17)
+This project uses a custom "Cyber Terminal" design system with the following characteristics:
+
+**Color Palette**
+- Primary neon colors: `--neon-cyan` (#00f5ff), `--neon-pink` (#ff00a0), `--neon-green` (#00ff9d), `--neon-yellow` (#ffee00), `--neon-purple` (#b829dd)
+- Dark backgrounds: `--bg-primary` (#0a0a0f), `--bg-secondary` (#12121a), `--bg-card` (#13131a)
+- Text hierarchy: `--text-primary`, `--text-secondary`, `--text-muted`
+
+**Typography**
+- Display/Headlines: `'JetBrains Mono'` - monospace for terminal aesthetic
+- Body: `'Space Grotesk'` - clean sans-serif
+- All code and data displays use JetBrains Mono
+
+**UI Patterns**
+- Terminal window cards with traffic light dots (red/yellow/green)
+- Glowing text effects: `.text-glow-cyan`, `.text-glow-pink`, etc.
+- Icon boxes with neon borders: `.icon-box-cyan`, `.icon-box-pink`, etc.
+- Scan line background overlay (`body::before`)
+- Grid background pattern (`.grid-bg`)
+
+**Navigation Structure**
+- Sidebar navigation (VS Code style) with tool categories
+- Categories: DATABASE, TIME, MEDIA, GENERATOR
+- Each tool has: icon, label, and belongs to a category
+- Mobile: sidebar collapsible with hamburger menu
+- Desktop: sidebar always visible, main content offset
+
+### Sidebar Navigation Pattern
+
+To add a new tool to the sidebar:
+
+1. **Create the tool page** at `src/routes/tool-name/+page.svelte`
+2. **Add to Sidebar.svelte** categories array:
+   ```typescript
+   const categories = [
+     {
+       name: "CATEGORY_NAME",
+       items: [
+         { href: "/tool-name", label: "Tool Label", icon: "◆" },
+       ]
+     }
+   ];
+   ```
+3. **Update tool count** in Sidebar footer
+4. **Add to homepage** grid in `src/routes/+page.svelte`
+5. **Update status bar** tool count
+
+### Adding New Tools
+
+When integrating a new tool:
+
+1. **Adapt to existing design system**
+   - Use `tool-card`, `icon-box-*`, `btn-primary`, `btn-secondary` classes
+   - Follow the card-header-content pattern with icon + title
+   - Use the established color coding (cyan/database, green/time, pink/media, purple/generator)
+
+2. **Page structure pattern**
+   ```
+   <div class="content-container">
+     <div class="page-title">Tool Name // Subtitle</div>
+     
+     <!-- Input section -->
+     <div class="tool-card">
+       <div class="flex items-center mb-5">
+         <div class="icon-box icon-box-cyan">
+           <span class="font-mono text-lg text-cyan">$</span>
+         </div>
+         <h2 class="card-title">Section Title // LABEL</h2>
+       </div>
+       <!-- Content -->
+     </div>
+     
+     <!-- Output/Result section (if applicable) -->
+   </div>
+   ```
+
+3. **Always run** `npm run check` after changes
+
+### Git Workflow Notes
+
+- Use `.gitignore` to exclude: `node_modules/`, `build/`, `.svelte-kit/`, IDE files
+- Commit source code only, never commit build outputs
+- Follow Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`
+- Keep commits atomic and focused
+
+### SVG Animation Tools (term2svg)
+
+The term2svg tool generates animated terminal SVGs:
+- Supports 6 terminal themes: catppuccin, dracula, tokyo, gruvbox, nord, light
+- Command lines get typing animation
+- Output lines fade in sequentially
+- Uses SMIL animations (not CSS) for compatibility
+- Parsing rules: `$`/`%`/`#!` prefix = command, others = output
