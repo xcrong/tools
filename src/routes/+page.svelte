@@ -1,6 +1,6 @@
 <svelte:head>
 	<title>开发工具集合</title>
-	<meta name="description" content="开发者工具集合 - MongoDB ObjectId转换、时间戳转换、豆包视频下载" />
+	<meta name="description" content="开发者工具集合 - MongoDB ObjectId转换、时间戳转换、豆包视频下载、term2svg终端动画" />
 </svelte:head>
 
 <div class="content-container grid-bg">
@@ -13,7 +13,7 @@
 					<span class="dot dot-yellow"></span>
 					<span class="dot dot-green"></span>
 				</div>
-				<div class="terminal-title">developer-tools.exe</div>
+				<div class="terminal-title">tools.xcrong.me</div>
 			</div>
 			<div class="terminal-body">
 				<div class="terminal-line">
@@ -123,6 +123,32 @@
 				</div>
 			</div>
 		</a>
+
+		<!-- term2svg -->
+		<a href="/term2svg" class="tool-card tool-card-purple group">
+			<div class="card-glow"></div>
+			<div class="flex items-center mb-5">
+				<div class="icon-box icon-box-purple">
+					<span class="font-mono text-lg text-purple">$</span>
+				</div>
+				<h2 class="card-title">term2svg</h2>
+			</div>
+			<p class="text-sm leading-relaxed mb-6 text-secondary">
+				将终端文本转换为动画 SVG，支持多种主题和打字效果
+			</p>
+			<div class="flex items-center justify-between">
+				<div class="tool-tags">
+					<span class="tag">#SVG</span>
+					<span class="tag">#动画</span>
+				</div>
+				<div class="enter-btn text-purple">
+					<span>执行</span>
+					<svg class="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+					</svg>
+				</div>
+			</div>
+		</a>
 	</div>
 
 	<!-- 状态栏 -->
@@ -133,7 +159,7 @@
 		</div>
 		<div class="status-item">
 			<span class="status-label">TOOLS</span>
-			<span class="status-value text-cyan">03 ACTIVE</span>
+			<span class="status-value text-cyan">04 ACTIVE</span>
 		</div>
 		<div class="status-item">
 			<span class="status-label">VERSION</span>

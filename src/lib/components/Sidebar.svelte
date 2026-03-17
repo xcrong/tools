@@ -27,6 +27,12 @@
 			items: [
 				{ href: "/doubao-video", label: "豆包视频下载", icon: "▶" },
 			]
+		},
+		{
+			name: "GENERATOR",
+			items: [
+				{ href: "/term2svg", label: "term2svg", icon: "◇" },
+			]
 		}
 	];
 	
@@ -107,7 +113,7 @@
 	<div class="sidebar-footer">
 		<div class="footer-line">
 			<span class="footer-dot"></span>
-			<span class="footer-text">03 tools loaded</span>
+			<span class="footer-text">04 tools loaded</span>
 		</div>
 	</div>
 </aside>
