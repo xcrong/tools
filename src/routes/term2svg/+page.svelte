@@ -133,9 +133,11 @@ Model saved to ./checkpoints/model_final.pt`
 	let promptStr = $state('~');
 	let speed = $state('normal');
 	let svgWidth = $state(720);
+	let maxHeight = $state(400); // 0 = auto
 	let lastSVG = $state('');
 	let previewMeta = $state('');
 	let copyFeedback = $state(false);
+	let replayKey = $state(0); // 用于强制重新渲染 SVG
 
 	function loadExample(key: string) {
 		inputText = EXAMPLES[key];
@@ -185,7 +187,8 @@ Model saved to ./checkpoints/model_final.pt`
 			theme: THEMES[theme] || THEMES.catppuccin,
 			prompt: promptStr || '~',
 			speed: SPEED[speed as keyof typeof SPEED] || SPEED.normal,
-			width: svgWidth
+			width: svgWidth,
+			maxHeight: maxHeight > 0 ? maxHeight : 0
 		};
 
 		const svg = buildSVG(blocks, opts);
@@ -199,7 +202,7 @@ Model saved to ./checkpoints/model_final.pt`
 		previewMeta = `${lineCount} lines`;
 	}
 
-	function buildSVG(blocks: Block[], opts: { theme: ThemeConfig; prompt: string; speed: { charMs: number; cmdGap: number; outGap: number }; width: number }): string | null {
+	function buildSVG(blocks: Block[], opts: { theme: ThemeConfig; prompt: string; speed: { charMs: number; cmdGap: number; outGap: number }; width: number; maxHeight: number }): string | null {
 		const theme = opts.theme;
 		const spd = opts.speed;
 		const W = opts.width;
@@ -214,12 +217,32 @@ Model saved to ./checkpoints/model_final.pt`
 		while (blocks.length && blocks[blocks.length - 1].type === 'empty') blocks.pop();
 		if (!blocks.length) return null;
 
-		const H = PAD_TOP + blocks.length * LINE_H + 32;
+		// 计算内容总高度
+		const contentHeight = blocks.length * LINE_H;
+		const totalContentH = PAD_TOP + contentHeight + 32;
+
+		// 确定可视区域高度（使用 maxHeight 或自动）
+		const VIEW_H = opts.maxHeight > TITLE_H + 50 ? opts.maxHeight : totalContentH;
+		const H = VIEW_H;
+
+		// 可视区域高度（从 PAD_TOP 开始）
+		const visibleAreaH = VIEW_H - PAD_TOP;
+		
+		// 底部边距，让最后一行距离底部一定距离
+		const BOTTOM_PADDING = FONT_SIZE + 10;
+
+		// 是否需要滚动
+		const needsScroll = totalContentH > VIEW_H;
+		// 修正：减去底部边距，让最后一行距离底部一定距离
+		const scrollOffset = needsScroll ? totalContentH - VIEW_H + BOTTOM_PADDING : 0;
 
 		let t = 300;
 		let idCounter = 0;
 		const defs: string[] = [];
 		const svgEls: string[] = [];
+		
+		// 记录每行完成显示的时间点（用于同步滚动）
+		const lineTimings: { lineIndex: number; completeTime: number; y: number }[] = [];
 
 		const colorMap: Record<string, string> = {
 			dim: theme.outDim,
@@ -297,7 +320,9 @@ Model saved to ./checkpoints/model_final.pt`
       █</text>
   </g>`);
 
-				t += typeDur + spd.cmdGap;
+				const cmdCompleteTime = t + typeDur;
+				lineTimings.push({ lineIndex: i, completeTime: cmdCompleteTime, y });
+				t = cmdCompleteTime + spd.cmdGap;
 				i++;
 
 				let outIdx = 0;
@@ -306,6 +331,7 @@ Model saved to ./checkpoints/model_final.pt`
 					const oy = PAD_TOP + i * LINE_H + FONT_SIZE;
 					const col = colorMap[classifyOut(ob.text)] || theme.outDim;
 					const delay = t + outIdx * spd.outGap;
+					const outCompleteTime = delay + 80;
 
 					svgEls.push(`
   <text x="${PAD_X}" y="${oy}" font-size="${FONT_SIZE}"
@@ -315,7 +341,8 @@ Model saved to ./checkpoints/model_final.pt`
       begin="${ms(delay)}" dur="0.001s" fill="freeze"/>
     ${escXML(ob.text)}</text>`);
 
-					t = delay + 80;
+					lineTimings.push({ lineIndex: i, completeTime: outCompleteTime, y: oy });
+					t = outCompleteTime;
 					outIdx++;
 					i++;
 				}
@@ -323,6 +350,7 @@ Model saved to ./checkpoints/model_final.pt`
 
 			} else if (b.type === 'out') {
 				const col = colorMap[classifyOut(b.text)] || theme.outDim;
+				const outCompleteTime = t + 80;
 				svgEls.push(`
   <text x="${PAD_X}" y="${y}" font-size="${FONT_SIZE}"
     font-family="'JetBrains Mono','Courier New',monospace"
@@ -330,25 +358,103 @@ Model saved to ./checkpoints/model_final.pt`
     <animate attributeName="opacity" from="0" to="1"
       begin="${ms(t)}" dur="0.001s" fill="freeze"/>
     ${escXML(b.text)}</text>`);
-				t += spd.outGap;
+				lineTimings.push({ lineIndex: i, completeTime: outCompleteTime, y });
+				t = outCompleteTime + spd.outGap;
 				i++;
 			} else {
 				i++;
 			}
 		}
 
+		// 添加内容裁剪区域（用于滚动时裁剪超出部分）
+		const clipId = `contentClip${Date.now()}`;
+		if (needsScroll) {
+			// 裁剪区域从 PAD_TOP 开始，确保与内容起始位置一致
+			defs.push(`  <clipPath id="${clipId}">
+    <rect x="0" y="${PAD_TOP}" width="${W}" height="${visibleAreaH}"/>
+  </clipPath>`);
+		}
+
+		// 计算滚动动画参数 - 与内容生成同步
+		let scrollAnim = '';
+		if (needsScroll && scrollOffset > 0) {
+			const scrollKeyTimes: string[] = ['0'];
+			const scrollValues: string[] = ['0'];
+
+			// 为每个需要滚动的行添加关键帧
+			let lastScrollPos = 0;
+
+			for (const timing of lineTimings) {
+				const lineTop = timing.y - PAD_TOP;
+				const lineBottom = lineTop + FONT_SIZE;
+
+				// 计算需要滚动多少才能让这行可见（考虑底部边距）
+				const neededScroll = Math.max(0, lineBottom - visibleAreaH + BOTTOM_PADDING);
+
+				if (neededScroll > lastScrollPos) {
+					// 归一化时间（相对于总时长）
+					const normalizedTime = timing.completeTime / (t + 500);
+					scrollKeyTimes.push(normalizedTime.toFixed(4));
+					scrollValues.push(neededScroll.toString());
+					lastScrollPos = neededScroll;
+				}
+			}
+
+			// 确保最终滚动到正确位置（在内容全部显示后完成）
+			if (lastScrollPos < scrollOffset) {
+				const normalizedTime = (t + 500) / (t + 500);
+				scrollKeyTimes.push(normalizedTime.toFixed(4));
+				scrollValues.push(scrollOffset.toString());
+			}
+
+			// 去重并保持时间递增
+			const uniqueKeyTimes: string[] = [];
+			const uniqueValues: string[] = [];
+			let lastTime = -1;
+			for (let j = 0; j < scrollKeyTimes.length; j++) {
+				const timeVal = parseFloat(scrollKeyTimes[j]);
+				if (timeVal > lastTime) {
+					uniqueKeyTimes.push(scrollKeyTimes[j]);
+					// 垂直向上滚动：x=0, y=-scrollValue
+					uniqueValues.push(`0 -${scrollValues[j]}`);
+					lastTime = timeVal;
+				} else if (timeVal === lastTime && j === scrollKeyTimes.length - 1) {
+					// 最后一个时间点使用最大滚动值
+					uniqueValues[uniqueValues.length - 1] = `0 -${scrollValues[j]}`;
+				}
+			}
+
+			scrollAnim = `  <animateTransform attributeName="transform" type="translate"
+    from="0 0" to="0 -${scrollOffset}"
+    begin="0s" dur="${ms(t + 500)}"
+    calcMode="discrete"
+    keyTimes="${uniqueKeyTimes.join(';')}"
+    values="${uniqueValues.join(';')}"
+    fill="freeze"/>`;
+		}
+
+		// 包装内容：外层应用裁剪，内层应用滚动变换
+		const contentGroup = needsScroll
+			? `<g clip-path="url(#${clipId})">
+  <g>
+    ${scrollAnim}
+${svgEls.join('\n')}
+  </g>
+</g>`
+			: svgEls.join('\n');
+
 		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
 <defs>
 ${defs.join('\n')}
 </defs>
 <rect width="${W}" height="${H}" rx="12" fill="${theme.bg}"/>
+${contentGroup}
 <rect width="${W}" height="${TITLE_H}" rx="12" fill="${theme.titleBar}"/>
 <rect y="${TITLE_H - 6}" width="${W}" height="6" fill="${theme.titleBar}"/>
 <circle cx="18" cy="${TITLE_H / 2}" r="6" fill="#ff6b6b"/>
 <circle cx="38" cy="${TITLE_H / 2}" r="6" fill="#ffd93d"/>
 <circle cx="58" cy="${TITLE_H / 2}" r="6" fill="#6bcb77"/>
 <text x="${W / 2}" y="${TITLE_H / 2 + 5}" text-anchor="middle" fill="${theme.outDim}" font-size="12" font-family="'JetBrains Mono','Courier New',monospace">${escXML(opts.prompt)} — bash</text>
-${svgEls.join('\n')}
 </svg>`;
 	}
 
@@ -367,6 +473,10 @@ ${svgEls.join('\n')}
 			copyFeedback = true;
 			setTimeout(() => copyFeedback = false, 1500);
 		});
+	}
+
+	function replaySVG() {
+		replayKey++;
 	}
 
 	onMount(() => {
@@ -409,7 +519,7 @@ $ git commit -m &quot;fix: update styles&quot;
 		></textarea>
 
 		<!-- 选项网格 -->
-		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-4">
+		<div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 mb-4">
 			<div class="space-y-1">
 				<span class="data-block-label">主题</span>
 				<select bind:value={theme} class="tool-input text-sm py-2">
@@ -436,6 +546,10 @@ $ git commit -m &quot;fix: update styles&quot;
 			<div class="space-y-1">
 				<span class="data-block-label">宽度</span>
 				<input type="number" bind:value={svgWidth} min="400" max="1200" class="tool-input text-sm py-2" />
+			</div>
+			<div class="space-y-1">
+				<span class="data-block-label">最大高度 (0=自动)</span>
+				<input type="number" bind:value={maxHeight} min="0" max="800" step="50" class="tool-input text-sm py-2" placeholder="自动" />
 			</div>
 		</div>
 
@@ -512,9 +626,11 @@ $ git commit -m &quot;fix: update styles&quot;
 				{/if}
 			</div>
 
+			{#key replayKey}
 			<div class="preview-container mb-5">
 				{@html lastSVG}
 			</div>
+			{/key}
 
 			<div class="flex gap-3">
 				<button class="btn-primary btn-primary-filled flex-1" onclick={downloadSVG}>
@@ -522,6 +638,9 @@ $ git commit -m &quot;fix: update styles&quot;
 				</button>
 				<button class="btn-secondary flex-1" onclick={copySVG}>
 					<span class="font-mono">{copyFeedback ? '✓ COPIED' : 'COPY SVG'}</span>
+				</button>
+				<button class="btn-secondary flex-1" onclick={replaySVG}>
+					<span class="font-mono">↻ REPLAY</span>
 				</button>
 			</div>
 		</div>
