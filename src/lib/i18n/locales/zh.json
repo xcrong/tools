@@ -1,0 +1,216 @@
+{
+  "common": {
+    "title": "开发工具集合",
+    "description": "开发者工具集合 - MongoDB ObjectId转换、时间戳转换、豆包视频下载、term2svg终端动画",
+    "execute": "执行",
+    "copy": "复制",
+    "copied": "已复制",
+    "clear": "清除",
+    "close": "关闭",
+    "toggleSidebar": "切换侧边栏",
+    "toggleTheme": "切换主题",
+    "switchLanguage": "切换语言"
+  },
+  "sidebar": {
+    "home": "主页",
+    "database": "数据库",
+    "time": "时间",
+    "media": "媒体",
+    "generator": "生成器",
+    "toolsLoaded": "个工具已加载",
+    "mongoObjectId": "MongoDB ObjectId",
+    "timestamp": "时间戳转换",
+    "doubaoVideo": "豆包视频下载",
+    "term2svg": "term2svg"
+  },
+  "home": {
+    "terminal": {
+      "whoami": "whoami",
+      "catDescription": "cat description.txt",
+      "description": "高效开发者工具集合 // 专为工程师打造的实用工具箱"
+    },
+    "tools": {
+      "mongoObjectId": {
+        "title": "MongoDB ObjectId",
+        "description": "在 MongoDB ObjectId 和时间戳之间转换，支持批量验证和结构解析",
+        "tags": ["数据库", "转换"]
+      },
+      "timestamp": {
+        "title": "时间戳转换",
+        "description": "各种精度的时间戳和人类可读时间格式转换，支持秒/毫秒/微秒/纳秒",
+        "tags": ["时间", "格式化"]
+      },
+      "doubaoVideo": {
+        "title": "豆包视频下载",
+        "description": "从豆包视频分享链接获取高清下载地址，支持解析视频元数据",
+        "tags": ["视频", "下载"]
+      },
+      "term2svg": {
+        "title": "term2svg",
+        "description": "将终端文本转换为动画 SVG，支持多种主题和打字效果",
+        "tags": ["SVG", "动画"]
+      }
+    },
+    "status": {
+      "system": "系统",
+      "online": "在线",
+      "tools": "工具",
+      "active": "运行中",
+      "version": "版本"
+    }
+  },
+  "mongoObjectId": {
+    "title": "MongoDB ObjectId // 时间戳转换器",
+    "description": "将 MongoDB ObjectId 转换为时间戳，反之亦然。解析 ObjectId 组件，批量验证，生成可查询的 ObjectIds。",
+    "input": {
+      "objectId": "ObjectId",
+      "objectIdPlaceholder": "输入24位字符的ObjectId",
+      "timestamp": "Timestamp",
+      "timestampPlaceholder": "输入ISO时间戳",
+      "invalidFormat": "格式无效"
+    },
+    "result": {
+      "title": "转换结果 // OUTPUT",
+      "iso": "ISO:",
+      "local": "本地:",
+      "unixS": "UNIX秒:",
+      "unixMs": "UNIX毫秒:",
+      "mongo": "MONGO:"
+    },
+    "structure": {
+      "title": "结构解析 // STRUCTURE",
+      "timestamp": "时间戳 (8位十六进制)",
+      "machineId": "机器ID (6位十六进制)",
+      "processId": "进程ID (4位十六进制)",
+      "counter": "计数器 (6位十六进制)",
+      "legend": {
+        "timestamp": "TIMESTAMP (4 bytes)",
+        "machineId": "MACHINE_ID (3 bytes)",
+        "processId": "PROCESS_ID (2 bytes)",
+        "counter": "COUNTER (3 bytes)"
+      }
+    },
+    "batch": {
+      "title": "批量验证 // BATCH",
+      "hint": "输入多个ObjectId（每行一个）以一次性验证它们",
+      "validate": "验证",
+      "results": "验证结果 // RESULTS"
+    },
+    "guide": {
+      "title": "使用指南 // GUIDE",
+      "structureTitle": "ObjectId 结构",
+      "structureDesc": "MongoDB ObjectId 是一个12字节（24字符）的十六进制值：",
+      "mongoShellTitle": "Mongo Shell 查询",
+      "mongoShellDesc": "从时间戳生成ObjectId用于日期范围查询："
+    }
+  },
+  "timestamp": {
+    "title": "时间戳转换工具",
+    "description": "Unix时间戳在线转换工具，支持秒/毫秒/微秒/纳秒多种精度",
+    "now": {
+      "title": "当前时间 // NOW",
+      "live": "LIVE"
+    },
+    "details": {
+      "title": "时间详情 // DETAILS",
+      "local": "本地:",
+      "tz": "时区:",
+      "iso": "ISO:",
+      "utc": "UTC:"
+    },
+    "input": {
+      "title": "输入 // INPUT",
+      "placeholder": "输入时间戳或日期时间",
+      "invalid": "输入无效"
+    },
+    "output": {
+      "title": "转换结果 // OUTPUT",
+      "unixS": "UNIX秒:",
+      "unixMs": "UNIX毫秒:"
+    }
+  },
+  "doubaoVideo": {
+    "title": "豆包视频链接解析工具",
+    "description": "从豆包视频分享链接获取高清视频下载地址，支持解析视频信息和一键复制下载链接",
+    "parser": {
+      "title": "视频链接解析 // PARSER",
+      "shareUrl": "分享链接",
+      "placeholder": "粘贴豆包视频分享链接",
+      "parse": "解析",
+      "parsing": "解析中..."
+    },
+    "info": {
+      "title": "视频信息 // INFO",
+      "poster": "封面",
+      "author": "作者",
+      "resolution": "分辨率",
+      "definition": "清晰度",
+      "videoUrl": "视频链接",
+      "backupUrl": "备用链接",
+      "prompt": "AI 提示词"
+    },
+    "errors": {
+      "emptyUrl": "请输入豆包视频分享链接",
+      "parseFailed": "解析失败",
+      "copyFailed": "复制失败，请手动复制"
+    },
+    "guide": {
+      "title": "使用说明 // GUIDE",
+      "steps": [
+        "在豆包App中复制视频分享链接",
+        "粘贴到输入框中",
+        "点击 PARSE 按钮获取视频信息",
+        "复制下载链接并使用下载工具"
+      ]
+    }
+  },
+  "term2svg": {
+    "title": "term2svg // 终端动画生成器",
+    "description": "将终端文本转换为动画 SVG，支持多种主题",
+    "input": {
+      "title": "终端输入 // INPUT",
+      "placeholder": "直接粘贴你的终端内容，例如：\n\n$ git status\nOn branch main\n  modified: src/index.js\n\n$ git add .\n$ git commit -m \"fix: update styles\"\n[main 3f2a1c9] fix: update styles\n\n提示：以 $ 或 % 或 # 开头的行会被识别为命令，其他行为输出。",
+      "generate": "生成 SVG",
+      "options": {
+        "theme": "主题",
+        "prompt": "提示符",
+        "speed": "速度",
+        "width": "宽度",
+        "maxHeight": "最大高度 (0=自动)",
+        "auto": "自动"
+      },
+      "speedOptions": {
+        "fast": "快速",
+        "normal": "正常",
+        "slow": "慢速"
+      }
+    },
+    "preview": {
+      "title": "预览 // PREVIEW",
+      "download": "下载 SVG",
+      "copy": "复制",
+      "replay": "重播"
+    },
+    "examples": {
+      "title": "示例模板 // EXAMPLES",
+      "git": "git 工作流",
+      "npm": "npm install",
+      "docker": "docker build",
+      "python": "python 脚本",
+      "ollama": "ollama help"
+    },
+    "rules": {
+      "title": "识别规则 // RULES",
+      "command": "命令行:",
+      "commandDesc": "以 $、%、#! 开头的行，播放打字动画",
+      "output": "输出:",
+      "outputDesc": "其他行作为命令输出，执行后渐显出现",
+      "empty": "空行:",
+      "emptyDesc": "保留为间距"
+    },
+    "errors": {
+      "emptyInput": "请先粘贴终端文本！",
+      "noContent": "没有识别到有效内容，请检查格式。"
+    }
+  }
+}

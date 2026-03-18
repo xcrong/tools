@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Cloudflare Worker API 地址
 	const API_URL = 'https://doubao.wjhsjbsish.workers.dev';
+	import { translate } from "$lib/i18n/store.svelte";
 
 	let shareUrl = $state("");
 	let loading = $state(false);
@@ -10,7 +11,7 @@
 
 	async function parseUrl() {
 		if (!shareUrl) {
-			error = "请输入豆包视频分享链接";
+			error = translate("doubaoVideo.errors.emptyUrl");
 			return;
 		}
 
@@ -30,12 +31,12 @@
 			const data = await response.json();
 
 			if (!response.ok) {
-				throw new Error(data.error || "解析失败");
+				throw new Error(data.error || translate("doubaoVideo.errors.parseFailed"));
 			}
 
 			videoInfo = data;
 		} catch (e) {
-			error = (e as Error).message || "解析失败";
+			error = (e as Error).message || translate("doubaoVideo.errors.parseFailed");
 		} finally {
 			loading = false;
 		}
@@ -46,7 +47,7 @@
 			copyFeedback[key] = true;
 			setTimeout(() => (copyFeedback[key] = false), 1500);
 		}).catch(() => {
-			alert("复制失败，请手动复制");
+			alert(translate("doubaoVideo.errors.copyFailed"));
 		});
 	}
 
@@ -58,15 +59,15 @@
 </script>
 
 <svelte:head>
-	<title>Doubao Video // 链接解析 - 开发工具集合</title>
+	<title>{translate("doubaoVideo.title")} - {translate("common.title")}</title>
 	<meta
 		name="description"
-		content="从豆包视频分享链接获取高清视频下载地址，支持解析视频信息和一键复制下载链接"
+		content={translate("doubaoVideo.description")}
 	/>
 </svelte:head>
 
 <div class="content-container">
-	<div class="page-title">豆包视频链接解析工具</div>
+	<div class="page-title">{translate("doubaoVideo.title")}</div>
 
 	<!-- 视频链接解析 -->
 	<div class="tool-card mb-5 tool-card-pink">
@@ -76,17 +77,17 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
 				</svg>
 			</div>
-			<h2 class="card-title">视频链接解析 // PARSER</h2>
+			<h2 class="card-title">{translate("doubaoVideo.parser.title")}</h2>
 		</div>
 		<div class="space-y-4">
 			<div>
 				<label for="share-url" class="block text-sm font-medium mb-2 font-mono text-secondary">
-					<span class="text-pink">$</span> SHARE_URL
+					<span class="text-pink">$</span> {translate("doubaoVideo.parser.shareUrl")}
 				</label>
 				<input
 					id="share-url"
 					type="url"
-					placeholder="粘贴豆包视频分享链接"
+					placeholder={translate("doubaoVideo.parser.placeholder")}
 					bind:value={shareUrl}
 					disabled={loading}
 					onkeydown={handleKeydown}
@@ -101,12 +102,12 @@
 			>
 				{#if loading}
 					<span class="loading-spinner"></span>
-					<span class="ml-2 font-mono">PARSING...</span>
+					<span class="ml-2 font-mono">{translate("doubaoVideo.parser.parsing")}</span>
 				{:else}
 					<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
-					<span class="font-mono">PARSE</span>
+					<span class="font-mono">{translate("doubaoVideo.parser.parse")}</span>
 				{/if}
 			</button>
 		</div>
@@ -126,17 +127,17 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 						</svg>
 					</div>
-					<h3 class="card-title">视频信息 // INFO</h3>
+					<h3 class="card-title">{translate("doubaoVideo.info.title")}</h3>
 				</div>
 
 				<!-- 视频封面 -->
 				{#if videoInfo.play_info?.poster_url}
 					<div class="mb-5">
-						<div class="data-block-label mb-2">封面 // POSTER</div>
+						<div class="data-block-label mb-2">{translate("doubaoVideo.info.poster")}</div>
 						<div class="poster-container">
 							<img 
 								src={videoInfo.play_info.poster_url} 
-								alt="视频封面" 
+								alt={translate("doubaoVideo.info.poster")}
 								class="poster-image"
 							/>
 							<div class="poster-overlay">
@@ -152,23 +153,23 @@
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
 					{#if videoInfo.user_info?.nickname}
 						<div class="data-block">
-							<div class="data-block-label">作者 // AUTHOR</div>
+							<div class="data-block-label">{translate("doubaoVideo.info.author")}</div>
 							<div class="data-block-value">{videoInfo.user_info.nickname}</div>
 						</div>
 					{/if}
 					<div class="data-block">
-						<div class="data-block-label">分辨率 // RES</div>
+						<div class="data-block-label">{translate("doubaoVideo.info.resolution")}</div>
 						<div class="data-block-value">{videoInfo.play_info.width}x{videoInfo.play_info.height}</div>
 					</div>
 					<div class="data-block">
-						<div class="data-block-label">清晰度 // DEF</div>
+						<div class="data-block-label">{translate("doubaoVideo.info.definition")}</div>
 						<div class="data-block-value">{videoInfo.play_info.definition}</div>
 					</div>
 				</div>
 				
 				<!-- 视频链接 -->
 				<div class="data-block mb-3">
-					<div class="data-block-label">视频链接 // VIDEO_URL</div>
+					<div class="data-block-label">{translate("doubaoVideo.info.videoUrl")}</div>
 					<div class="flex gap-2 items-start mt-2">
 						<div class="flex-1 p-3 rounded-lg font-mono text-sm break-all code-block">
 							{videoInfo.play_info.main}
@@ -177,7 +178,7 @@
 							onclick={() => copyToClipboard(videoInfo.play_info.main, 'video')}
 							class="btn-copy {copyFeedback['video'] ? 'btn-copy-success' : ''} whitespace-nowrap"
 						>
-							{copyFeedback['video'] ? '✓' : 'CP'}
+							{copyFeedback['video'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 						</button>
 					</div>
 				</div>
@@ -185,7 +186,7 @@
 				<!-- 备用链接 -->
 				{#if videoInfo.play_info.backup}
 					<div class="data-block mb-3">
-						<div class="data-block-label">备用链接 // BACKUP</div>
+						<div class="data-block-label">{translate("doubaoVideo.info.backupUrl")}</div>
 						<div class="flex gap-2 items-start mt-2">
 							<div class="flex-1 p-3 rounded-lg font-mono text-sm break-all code-block opacity-70">
 								{videoInfo.play_info.backup}
@@ -194,7 +195,7 @@
 								onclick={() => copyToClipboard(videoInfo.play_info.backup, 'backup')}
 								class="btn-copy {copyFeedback['backup'] ? 'btn-copy-success' : ''} whitespace-nowrap"
 							>
-								{copyFeedback['backup'] ? '✓' : 'CP'}
+								{copyFeedback['backup'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 							</button>
 						</div>
 					</div>
@@ -203,7 +204,7 @@
 				<!-- AI 提示词 -->
 				{#if videoInfo.prompt}
 					<div class="data-block">
-						<div class="data-block-label">AI 提示词 // PROMPT</div>
+						<div class="data-block-label">{translate("doubaoVideo.info.prompt")}</div>
 						<div class="mt-2 text-sm break-all font-mono p-3 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)]" style="color: var(--text-secondary);">
 							{videoInfo.prompt}
 						</div>
@@ -221,24 +222,24 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
 			</div>
-			<h2 class="card-title">使用说明 // GUIDE</h2>
+			<h2 class="card-title">{translate("doubaoVideo.guide.title")}</h2>
 		</div>
 		<div class="space-y-3">
 			<div class="step-item">
 				<span class="step-number">01</span>
-				<span class="step-text">在豆包App中复制视频分享链接</span>
+				<span class="step-text">{translate("doubaoVideo.guide.steps.0")}</span>
 			</div>
 			<div class="step-item">
 				<span class="step-number">02</span>
-				<span class="step-text">粘贴到输入框中</span>
+				<span class="step-text">{translate("doubaoVideo.guide.steps.1")}</span>
 			</div>
 			<div class="step-item">
 				<span class="step-number">03</span>
-				<span class="step-text">点击 PARSE 按钮获取视频信息</span>
+				<span class="step-text">{translate("doubaoVideo.guide.steps.2")}</span>
 			</div>
 			<div class="step-item">
 				<span class="step-number">04</span>
-				<span class="step-text">复制下载链接并使用下载工具</span>
+				<span class="step-text">{translate("doubaoVideo.guide.steps.3")}</span>
 			</div>
 		</div>
 	</div>

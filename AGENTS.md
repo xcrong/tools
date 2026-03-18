@@ -306,3 +306,62 @@ The term2svg tool generates animated terminal SVGs:
 - Output lines fade in sequentially
 - Uses SMIL animations (not CSS) for compatibility
 - Parsing rules: `$`/`%`/`#!` prefix = command, others = output
+
+### Internationalization (i18n) (2026-03-18)
+
+This project supports Chinese and English with automatic browser language detection.
+
+**Architecture**
+- Custom lightweight i18n implementation (no external dependencies)
+- Svelte 5 runes for reactive language switching
+- Static site compatible (no SSR required)
+
+**File Structure**
+```
+src/lib/i18n/
+├── index.ts          # Core translation logic, language detection
+├── store.svelte.ts   # Svelte 5 reactive state (i18n, translate)
+└── locales/
+    ├── zh.json       # Chinese translations
+    └── en.json       # English translations
+```
+
+**Usage**
+```svelte
+<script lang="ts">
+  import { translate, i18n } from "$lib/i18n/store.svelte";
+</script>
+
+<!-- In templates -->
+<h1>{translate("common.title")}</h1>
+
+<!-- Language switching -->
+<button onclick={() => i18n.toggle()}>
+  {i18n.locale === 'zh' ? 'EN' : '中文'}
+</button>
+```
+
+**Features**
+- Automatic browser language detection (`navigator.language`)
+- Language preference stored in `localStorage`
+- FOWL (Flash of Wrong Locale) prevention via inline script in `app.html`
+- URL remains unchanged (no language prefix)
+- Instant language switching without page refresh
+
+**Translation Keys Structure**
+```json
+{
+  "common": { "title": "...", "copy": "...", ... },
+  "sidebar": { "home": "...", "database": "...", ... },
+  "home": { "tools": {...}, "status": {...}, ... },
+  "mongoObjectId": {...},
+  "timestamp": {...},
+  "doubaoVideo": {...},
+  "term2svg": {...}
+}
+```
+
+**Adding New Translations**
+1. Add keys to both `zh.json` and `en.json`
+2. Use `translate("key.path")` in components
+3. Run `npm run check` to verify

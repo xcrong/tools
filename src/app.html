@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh">
 
 <head>
 	<meta charset="utf-8" />
@@ -7,6 +7,38 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<script>
+		// FOWL 防护 - 在 SvelteKit 加载前检测语言
+		(function() {
+			var LOCALES = ['zh', 'en'];
+			var DEFAULT = 'zh';
+			var KEY = 'locale';
+			
+			// 检测并设置语言
+			function initLocale() {
+				// 优先级 1: localStorage
+				try {
+					var stored = localStorage.getItem(KEY);
+					if (stored && LOCALES.indexOf(stored) !== -1) {
+						document.documentElement.lang = stored;
+						return;
+					}
+				} catch (e) {}
+				
+				// 优先级 2: 浏览器语言
+				var browserLang = navigator.language.split('-')[0];
+				if (browserLang && LOCALES.indexOf(browserLang) !== -1) {
+					document.documentElement.lang = browserLang;
+					return;
+				}
+				
+				// 默认语言
+				document.documentElement.lang = DEFAULT;
+			}
+			
+			initLocale();
+		})();
+	</script>
 	%sveltekit.head%
 </head>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { translate } from "$lib/i18n/store.svelte";
 
 	// 主题配置
 	const THEMES: Record<string, ThemeConfig> = {
@@ -214,7 +215,7 @@ Use "ollama [command] --help" for more information about a command.`
 	function generate() {
 		const raw = inputText.trim();
 		if (!raw) {
-			alert('请先粘贴终端文本！');
+			alert(translate("term2svg.errors.emptyInput"));
 			return;
 		}
 
@@ -229,7 +230,7 @@ Use "ollama [command] --help" for more information about a command.`
 
 		const svg = buildSVG(blocks, opts);
 		if (!svg) {
-			alert('没有识别到有效内容，请检查格式。');
+			alert(translate("term2svg.errors.noContent"));
 			return;
 		}
 
@@ -525,12 +526,12 @@ ${contentGroup}
 </script>
 
 <svelte:head>
-	<title>term2svg // 终端动画生成器 - 开发工具集合</title>
-	<meta name="description" content="将终端文本转换为动画 SVG，支持多种主题" />
+	<title>{translate("term2svg.title")} - {translate("common.title")}</title>
+	<meta name="description" content={translate("term2svg.description")} />
 </svelte:head>
 
 <div class="content-container">
-	<div class="page-title">term2svg // 终端动画生成器</div>
+	<div class="page-title">{translate("term2svg.title")}</div>
 
 	<!-- 输入面板 -->
 	<div class="tool-card mb-5">
@@ -538,22 +539,12 @@ ${contentGroup}
 			<div class="icon-box icon-box-green">
 				<span class="font-mono text-lg text-green font-bold">$</span>
 			</div>
-			<h2 class="card-title">终端输入 // INPUT</h2>
+			<h2 class="card-title">{translate("term2svg.input.title")}</h2>
 		</div>
 
 		<textarea
 			bind:value={inputText}
-			placeholder="直接粘贴你的终端内容，例如：
-
-$ git status
-On branch main
-  modified: src/index.js
-
-$ git add .
-$ git commit -m &quot;fix: update styles&quot;
-[main 3f2a1c9] fix: update styles
-
-提示：以 $ 或 % 或 # 开头的行会被识别为命令，其他行为输出。"
+			placeholder={translate("term2svg.input.placeholder")}
 			rows="10"
 			class="tool-input resize-none"
 		></textarea>
@@ -561,7 +552,7 @@ $ git commit -m &quot;fix: update styles&quot;
 		<!-- 选项网格 -->
 		<div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 mb-4">
 			<div class="space-y-1">
-				<span class="data-block-label">主题</span>
+				<span class="data-block-label">{translate("term2svg.input.options.theme")}</span>
 				<select bind:value={theme} class="tool-input text-sm py-2">
 					<option value="catppuccin">Catppuccin</option>
 					<option value="dracula">Dracula</option>
@@ -572,29 +563,29 @@ $ git commit -m &quot;fix: update styles&quot;
 				</select>
 			</div>
 			<div class="space-y-1">
-				<span class="data-block-label">提示符</span>
+				<span class="data-block-label">{translate("term2svg.input.options.prompt")}</span>
 				<input type="text" bind:value={promptStr} class="tool-input text-sm py-2" />
 			</div>
 			<div class="space-y-1">
-				<span class="data-block-label">速度</span>
+				<span class="data-block-label">{translate("term2svg.input.options.speed")}</span>
 				<select bind:value={speed} class="tool-input text-sm py-2">
-					<option value="fast">快速</option>
-					<option value="normal">正常</option>
-					<option value="slow">慢速</option>
+					<option value="fast">{translate("term2svg.input.speedOptions.fast")}</option>
+					<option value="normal">{translate("term2svg.input.speedOptions.normal")}</option>
+					<option value="slow">{translate("term2svg.input.speedOptions.slow")}</option>
 				</select>
 			</div>
 			<div class="space-y-1">
-				<span class="data-block-label">宽度</span>
+				<span class="data-block-label">{translate("term2svg.input.options.width")}</span>
 				<input type="number" bind:value={svgWidth} min="400" max="1200" class="tool-input text-sm py-2" />
 			</div>
 			<div class="space-y-1">
-				<span class="data-block-label">最大高度 (0=自动)</span>
-				<input type="number" bind:value={maxHeight} min="0" max="800" step="50" class="tool-input text-sm py-2" placeholder="自动" />
+				<span class="data-block-label">{translate("term2svg.input.options.maxHeight")}</span>
+				<input type="number" bind:value={maxHeight} min="0" max="800" step="50" class="tool-input text-sm py-2" placeholder={translate("term2svg.input.options.auto")} />
 			</div>
 		</div>
 
 		<button class="btn-primary btn-primary-filled w-full" onclick={generate}>
-			<span class="font-mono">GENERATE SVG</span>
+			<span class="font-mono">{translate("term2svg.input.generate")}</span>
 		</button>
 	</div>
 
@@ -609,7 +600,7 @@ $ git commit -m &quot;fix: update styles&quot;
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 					</svg>
 					</div>
-					<h2 class="card-title">预览 // PREVIEW</h2>
+					<h2 class="card-title">{translate("term2svg.preview.title")}</h2>
 				</div>
 				{#if previewMeta}
 					<span class="font-mono text-sm text-muted">{previewMeta}</span>
@@ -624,13 +615,13 @@ $ git commit -m &quot;fix: update styles&quot;
 
 			<div class="flex gap-3 flex-wrap">
 				<button class="btn-primary btn-primary-filled flex-1 min-w-[120px]" onclick={downloadSVG}>
-					<span class="font-mono">↓ SVG</span>
+					<span class="font-mono">{translate("term2svg.preview.download")}</span>
 				</button>
 				<button class="btn-secondary flex-1 min-w-[120px]" onclick={copySVG}>
-					<span class="font-mono">{copyFeedback ? '✓ COPIED' : 'COPY'}</span>
+					<span class="font-mono">{copyFeedback ? '✓ ' + translate("common.copied").toUpperCase() : translate("term2svg.preview.copy")}</span>
 				</button>
 				<button class="btn-secondary flex-1 min-w-[120px]" onclick={replaySVG}>
-					<span class="font-mono">↻ REPLAY</span>
+					<span class="font-mono">{translate("term2svg.preview.replay")}</span>
 				</button>
 			</div>
 		</div>
@@ -642,23 +633,23 @@ $ git commit -m &quot;fix: update styles&quot;
 			<div class="icon-box icon-box-purple">
 				<span class="font-mono text-lg text-purple">#</span>
 			</div>
-			<h2 class="card-title">示例模板 // EXAMPLES</h2>
+			<h2 class="card-title">{translate("term2svg.examples.title")}</h2>
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<button class="btn-secondary" onclick={() => loadExample('git')}>
-				<span class="font-mono text-sm">git 工作流</span>
+				<span class="font-mono text-sm">{translate("term2svg.examples.git")}</span>
 			</button>
 			<button class="btn-secondary" onclick={() => loadExample('npm')}>
-				<span class="font-mono text-sm">npm install</span>
+				<span class="font-mono text-sm">{translate("term2svg.examples.npm")}</span>
 			</button>
 			<button class="btn-secondary" onclick={() => loadExample('docker')}>
-				<span class="font-mono text-sm">docker build</span>
+				<span class="font-mono text-sm">{translate("term2svg.examples.docker")}</span>
 			</button>
 			<button class="btn-secondary" onclick={() => loadExample('python')}>
-				<span class="font-mono text-sm">python 脚本</span>
+				<span class="font-mono text-sm">{translate("term2svg.examples.python")}</span>
 			</button>
 			<button class="btn-secondary" onclick={() => loadExample('ollama')}>
-				<span class="font-mono text-sm">ollama help</span>
+				<span class="font-mono text-sm">{translate("term2svg.examples.ollama")}</span>
 			</button>
 		</div>
 	</div>
@@ -671,20 +662,20 @@ $ git commit -m &quot;fix: update styles&quot;
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
 			</div>
-			<h2 class="card-title">识别规则 // RULES</h2>
+			<h2 class="card-title">{translate("term2svg.rules.title")}</h2>
 		</div>
 		<div class="space-y-2 text-sm text-secondary">
 			<div class="data-row">
-				<span class="data-label">命令行:</span>
+				<span class="data-label">{translate("term2svg.rules.command")}</span>
 				<span class="data-value">以 <span class="text-green font-mono">$</span>、<span class="text-green font-mono">%</span>、<span class="text-green font-mono">#!</span> 开头的行，播放打字动画</span>
 			</div>
 			<div class="data-row">
-				<span class="data-label">输出:</span>
-				<span class="data-value">其他行作为命令输出，执行后渐显出现</span>
+				<span class="data-label">{translate("term2svg.rules.output")}</span>
+				<span class="data-value">{translate("term2svg.rules.outputDesc")}</span>
 			</div>
 			<div class="data-row">
-				<span class="data-label">空行:</span>
-				<span class="data-value">保留为间距</span>
+				<span class="data-label">{translate("term2svg.rules.empty")}</span>
+				<span class="data-value">{translate("term2svg.rules.emptyDesc")}</span>
 			</div>
 		</div>
 	</div>

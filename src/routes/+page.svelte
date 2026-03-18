@@ -1,6 +1,10 @@
+<script lang="ts">
+	import { translate } from "$lib/i18n/store.svelte";
+</script>
+
 <svelte:head>
-	<title>开发工具集合</title>
-	<meta name="description" content="开发者工具集合 - MongoDB ObjectId转换、时间戳转换、豆包视频下载、term2svg终端动画" />
+	<title>{translate("common.title")}</title>
+	<meta name="description" content={translate("common.description")} />
 </svelte:head>
 
 <div class="content-container grid-bg">
@@ -18,17 +22,17 @@
 			<div class="terminal-body">
 				<div class="terminal-line">
 					<span class="terminal-prompt">$</span>
-					<span class="terminal-command">whoami</span>
+					<span class="terminal-command">{translate("home.terminal.whoami")}</span>
 				</div>
 				<div class="terminal-output">
 					<span class="text-glow-cyan font-display text-2xl md:text-3xl">tools.xcrong.me</span>
 				</div>
 				<div class="terminal-line mt-4">
 					<span class="terminal-prompt">$</span>
-					<span class="terminal-command">cat description.txt</span>
+					<span class="terminal-command">{translate("home.terminal.catDescription")}</span>
 				</div>
 				<div class="terminal-output text-secondary">
-					高效开发者工具集合 // 专为工程师打造的实用工具箱
+					{translate("home.terminal.description")}
 				</div>
 				<div class="terminal-line mt-4">
 					<span class="terminal-prompt">$</span>
@@ -49,18 +53,18 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
 					</svg>
 				</div>
-				<h2 class="card-title">MongoDB ObjectId</h2>
+				<h2 class="card-title">{translate("home.tools.mongoObjectId.title")}</h2>
 			</div>
 			<p class="text-sm leading-relaxed mb-6 text-secondary">
-				在 MongoDB ObjectId 和时间戳之间转换，支持批量验证和结构解析
+				{translate("home.tools.mongoObjectId.description")}
 			</p>
 			<div class="flex items-center justify-between">
 				<div class="tool-tags">
-					<span class="tag">#数据库</span>
-					<span class="tag">#转换</span>
+					<span class="tag">#{translate("home.tools.mongoObjectId.tags.0")}</span>
+					<span class="tag">#{translate("home.tools.mongoObjectId.tags.1")}</span>
 				</div>
 				<div class="enter-btn">
-					<span>执行</span>
+					<span>{translate("common.execute")}</span>
 					<svg class="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
@@ -77,18 +81,18 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 				</div>
-				<h2 class="card-title">时间戳转换</h2>
+				<h2 class="card-title">{translate("home.tools.timestamp.title")}</h2>
 			</div>
 			<p class="text-sm leading-relaxed mb-6 text-secondary">
-				各种精度的时间戳和人类可读时间格式转换，支持秒/毫秒/微秒/纳秒
+				{translate("home.tools.timestamp.description")}
 			</p>
 			<div class="flex items-center justify-between">
 				<div class="tool-tags">
-					<span class="tag">#时间</span>
-					<span class="tag">#格式化</span>
+					<span class="tag">#{translate("home.tools.timestamp.tags.0")}</span>
+					<span class="tag">#{translate("home.tools.timestamp.tags.1")}</span>
 				</div>
 				<div class="enter-btn text-green">
-					<span>执行</span>
+					<span>{translate("common.execute")}</span>
 					<svg class="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
@@ -105,18 +109,18 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
 					</svg>
 				</div>
-				<h2 class="card-title">豆包视频下载</h2>
+				<h2 class="card-title">{translate("home.tools.doubaoVideo.title")}</h2>
 			</div>
 			<p class="text-sm leading-relaxed mb-6 text-secondary">
-				从豆包视频分享链接获取高清下载地址，支持解析视频元数据
+				{translate("home.tools.doubaoVideo.description")}
 			</p>
 			<div class="flex items-center justify-between">
 				<div class="tool-tags">
-					<span class="tag">#视频</span>
-					<span class="tag">#下载</span>
+					<span class="tag">#{translate("home.tools.doubaoVideo.tags.0")}</span>
+					<span class="tag">#{translate("home.tools.doubaoVideo.tags.1")}</span>
 				</div>
 				<div class="enter-btn text-pink">
-					<span>执行</span>
+					<span>{translate("common.execute")}</span>
 					<svg class="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
@@ -131,18 +135,18 @@
 				<div class="icon-box icon-box-purple">
 					<span class="font-mono text-lg text-purple">$</span>
 				</div>
-				<h2 class="card-title">term2svg</h2>
+				<h2 class="card-title">{translate("home.tools.term2svg.title")}</h2>
 			</div>
 			<p class="text-sm leading-relaxed mb-6 text-secondary">
-				将终端文本转换为动画 SVG，支持多种主题和打字效果
+				{translate("home.tools.term2svg.description")}
 			</p>
 			<div class="flex items-center justify-between">
 				<div class="tool-tags">
-					<span class="tag">#SVG</span>
-					<span class="tag">#动画</span>
+					<span class="tag">#{translate("home.tools.term2svg.tags.0")}</span>
+					<span class="tag">#{translate("home.tools.term2svg.tags.1")}</span>
 				</div>
 				<div class="enter-btn text-purple">
-					<span>执行</span>
+					<span>{translate("common.execute")}</span>
 					<svg class="w-4 h-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
@@ -154,15 +158,15 @@
 	<!-- 状态栏 -->
 	<div class="status-bar mt-12">
 		<div class="status-item">
-			<span class="status-label">SYSTEM</span>
-			<span class="status-value text-green">● ONLINE</span>
+			<span class="status-label">{translate("home.status.system")}</span>
+			<span class="status-value text-green">● {translate("home.status.online")}</span>
 		</div>
 		<div class="status-item">
-			<span class="status-label">TOOLS</span>
-			<span class="status-value text-cyan">04 ACTIVE</span>
+			<span class="status-label">{translate("home.status.tools")}</span>
+			<span class="status-value text-cyan">04 {translate("home.status.active")}</span>
 		</div>
 		<div class="status-item">
-			<span class="status-label">VERSION</span>
+			<span class="status-label">{translate("home.status.version")}</span>
 			<span class="status-value">v2.0.0</span>
 		</div>
 	</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
+	import { translate } from "$lib/i18n/store.svelte";
 	
 	interface Props {
 		isOpen: boolean;
@@ -9,35 +10,35 @@
 	let { isOpen, onClose }: Props = $props();
 	
 	// 工具分类数据
-	const categories = [
+	const categories = $derived([
 		{
-			name: "DATABASE",
+			name: translate("sidebar.database"),
 			items: [
-				{ href: "/mongo-objectid", label: "MongoDB ObjectId", icon: "#" },
+				{ href: "/mongo-objectid", label: translate("sidebar.mongoObjectId"), icon: "#" },
 			]
 		},
 		{
-			name: "TIME",
+			name: translate("sidebar.time"),
 			items: [
-				{ href: "/timestamp", label: "Timestamp", icon: "◷" },
+				{ href: "/timestamp", label: translate("sidebar.timestamp"), icon: "◷" },
 			]
 		},
 		{
-			name: "MEDIA",
+			name: translate("sidebar.media"),
 			items: [
-				{ href: "/doubao-video", label: "豆包视频下载", icon: "▶" },
+				{ href: "/doubao-video", label: translate("sidebar.doubaoVideo"), icon: "▶" },
 			]
 		},
 		{
-			name: "GENERATOR",
+			name: translate("sidebar.generator"),
 			items: [
-				{ href: "/term2svg", label: "term2svg", icon: "◇" },
+				{ href: "/term2svg", label: translate("sidebar.term2svg"), icon: "◇" },
 			]
 		}
-	];
+	]);
 	
 	// 主页特殊处理
-	const homeItem = { href: "/", label: "Home", icon: "⌂" };
+	const homeItem = $derived({ href: "/", label: translate("sidebar.home"), icon: "⌂" });
 	
 	function handleItemClick() {
 		// 移动端点击后自动关闭
@@ -55,7 +56,7 @@
 		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="button"
 		tabindex="0"
-		aria-label="关闭侧边栏"
+		aria-label={translate("common.close")}
 	></div>
 {/if}
 
@@ -68,7 +69,7 @@
 			<span class="logo-text">TOOLS</span>
 			<span class="logo-bracket">]</span>
 		</div>
-		<button class="close-btn" onclick={onClose} aria-label="关闭">
+		<button class="close-btn" onclick={onClose} aria-label={translate("common.close")}>
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 			</svg>
@@ -113,7 +114,7 @@
 	<div class="sidebar-footer">
 		<div class="footer-line">
 			<span class="footer-dot"></span>
-			<span class="footer-text">04 tools loaded</span>
+			<span class="footer-text">04 {translate("sidebar.toolsLoaded")}</span>
 		</div>
 	</div>
 </aside>

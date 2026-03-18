@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
 	import "./app.css";
 	import Sidebar from "$lib/components/Sidebar.svelte";
+	import { i18n, translate } from "$lib/i18n/store.svelte";
 
 	let { children } = $props();
 	let theme = $state("dark");
@@ -43,6 +44,10 @@
 	function closeSidebar() {
 		sidebarOpen = false;
 	}
+
+	function switchLanguage() {
+		i18n.toggle();
+	}
 </script>
 
 <!-- 侧边栏 -->
@@ -58,7 +63,7 @@
 				<button
 					onclick={toggleSidebar}
 					class="sidebar-toggle"
-					aria-label="切换侧边栏"
+					aria-label={translate("common.toggleSidebar")}
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -71,22 +76,34 @@
 				</a>
 			</div>
 
-			<!-- 右侧：主题切换 -->
-			<button
-				onclick={toggleTheme}
-				class="theme-btn"
-				aria-label="切换主题"
-			>
-				{#if theme === 'dark'}
-					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-					</svg>
-				{:else}
-					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-					</svg>
-				{/if}
-			</button>
+			<!-- 右侧：语言切换 + 主题切换 -->
+			<div class="flex items-center gap-2">
+				<!-- 语言切换按钮 -->
+				<button
+					onclick={switchLanguage}
+					class="theme-btn"
+					aria-label={translate("common.switchLanguage")}
+				>
+					<span class="text-xs font-mono font-semibold">{i18n.locale === 'zh' ? 'EN' : '中文'}</span>
+				</button>
+				
+				<!-- 主题切换按钮 -->
+				<button
+					onclick={toggleTheme}
+					class="theme-btn"
+					aria-label={translate("common.toggleTheme")}
+				>
+					{#if theme === 'dark'}
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+						</svg>
+					{:else}
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+						</svg>
+					{/if}
+				</button>
+			</div>
 		</div>
 	</nav>
 

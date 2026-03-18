@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { translate } from "$lib/i18n/store.svelte";
 
 	let inputValue = $state("");
 	let nowTimestamp = $state({ s: 0, ms: 0 });
@@ -108,15 +109,15 @@
 </script>
 
 <svelte:head>
-	<title>Timestamp // 转换工具 - 开发工具集合</title>
+	<title>{translate("timestamp.title")} - {translate("common.title")}</title>
 	<meta
 		name="description"
-		content="Unix时间戳在线转换工具，支持秒/毫秒/微秒/纳秒多种精度"
+		content={translate("timestamp.description")}
 	/>
 </svelte:head>
 
 <div class="content-container">
-	<div class="page-title">时间戳转换工具</div>
+	<div class="page-title">{translate("timestamp.title")}</div>
 
 	<!-- 当前时间 - 实时显示 -->
 	<div class="tool-card mb-5 tool-card-cyan animate-pulse-glow">
@@ -126,33 +127,33 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
 			</div>
-			<h2 class="card-title">当前时间 // NOW</h2>
+			<h2 class="card-title">{translate("timestamp.now.title")}</h2>
 			<div class="ml-auto">
 				<span class="live-indicator">
 					<span class="live-dot"></span>
-					<span class="live-text">LIVE</span>
+					<span class="live-text">{translate("timestamp.now.live")}</span>
 				</span>
 			</div>
 		</div>
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 			<div class="data-row">
-				<span class="data-label">UNIX_S:</span>
+				<span class="data-label">{translate("timestamp.output.unixS")}</span>
 				<span class="data-value text-cyan text-lg">{nowTimestamp.s}</span>
 				<button
 					class="btn-copy {copyFeedback['nowS'] ? 'btn-copy-success' : ''}"
 					onclick={() => copyToClipboard(nowTimestamp.s.toString(), 'nowS')}
 				>
-					{copyFeedback['nowS'] ? '✓' : 'CP'}
+					{copyFeedback['nowS'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 				</button>
 			</div>
 			<div class="data-row">
-				<span class="data-label">UNIX_MS:</span>
+				<span class="data-label">{translate("timestamp.output.unixMs")}</span>
 				<span class="data-value text-cyan text-lg">{nowTimestamp.ms}</span>
 				<button
 					class="btn-copy {copyFeedback['nowMs'] ? 'btn-copy-success' : ''}"
 					onclick={() => copyToClipboard(nowTimestamp.ms.toString(), 'nowMs')}
 				>
-					{copyFeedback['nowMs'] ? '✓' : 'CP'}
+					{copyFeedback['nowMs'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 				</button>
 			</div>
 		</div>
@@ -166,23 +167,23 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 				</svg>
 			</div>
-			<h2 class="card-title">时间详情 // DETAILS</h2>
+			<h2 class="card-title">{translate("timestamp.details.title")}</h2>
 		</div>
 		<div class="space-y-2">
 			<div class="data-row">
-				<span class="data-label">LOCAL:</span>
+				<span class="data-label">{translate("timestamp.details.local")}</span>
 				<span class="data-value">{currentTime.local}</span>
 			</div>
 			<div class="data-row">
-				<span class="data-label">TZ:</span>
+				<span class="data-label">{translate("timestamp.details.tz")}</span>
 				<span class="data-value">{currentTime.timezone}</span>
 			</div>
 			<div class="data-row">
-				<span class="data-label">ISO:</span>
+				<span class="data-label">{translate("timestamp.details.iso")}</span>
 				<span class="data-value">{currentTime.iso}</span>
 			</div>
 			<div class="data-row">
-				<span class="data-label">UTC:</span>
+				<span class="data-label">{translate("timestamp.details.utc")}</span>
 				<span class="data-value">{currentTime.utc}</span>
 			</div>
 		</div>
@@ -196,12 +197,12 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 				</svg>
 			</div>
-			<h2 class="card-title">输入 // INPUT</h2>
+			<h2 class="card-title">{translate("timestamp.input.title")}</h2>
 		</div>
 		<div class="flex flex-col sm:flex-row gap-3">
 			<input
 				type="text"
-				placeholder="输入时间戳或日期时间"
+				placeholder={translate("timestamp.input.placeholder")}
 				bind:value={inputValue}
 				class="tool-input flex-1"
 			/>
@@ -216,7 +217,7 @@
 		</div>
 		{#if inputValue && !result.s}
 			<p class="text-sm mt-3 font-mono" style="color: var(--error);">
-				⚠ INVALID_INPUT
+				⚠ {translate("timestamp.input.invalid")}
 			</p>
 		{/if}
 	</div>
@@ -229,66 +230,66 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 				</svg>
 			</div>
-			<h2 class="card-title">转换结果 // OUTPUT</h2>
+			<h2 class="card-title">{translate("timestamp.output.title")}</h2>
 		</div>
 		<div class="space-y-2">
 			<div class="data-row">
-				<span class="data-label">UNIX_S:</span>
+				<span class="data-label">{translate("timestamp.output.unixS")}</span>
 				<span class="data-value {result.s ? 'text-cyan' : 'text-muted'}">{result.s || "---"}</span>
 				{#if result.s}
 					<button
 						class="btn-copy {copyFeedback['s'] ? 'btn-copy-success' : ''}"
 						onclick={() => copyToClipboard(result.s, 's')}
 					>
-						{copyFeedback['s'] ? '✓' : 'CP'}
+						{copyFeedback['s'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 					</button>
 				{/if}
 			</div>
 			<div class="data-row">
-				<span class="data-label">UNIX_MS:</span>
+				<span class="data-label">{translate("timestamp.output.unixMs")}</span>
 				<span class="data-value {result.ms ? 'text-cyan' : 'text-muted'}">{result.ms || "---"}</span>
 				{#if result.ms}
 					<button
 						class="btn-copy {copyFeedback['ms'] ? 'btn-copy-success' : ''}"
 						onclick={() => copyToClipboard(result.ms, 'ms')}
 					>
-						{copyFeedback['ms'] ? '✓' : 'CP'}
+						{copyFeedback['ms'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 					</button>
 				{/if}
 			</div>
 			<div class="data-row">
-				<span class="data-label">ISO:</span>
+				<span class="data-label">{translate("timestamp.details.iso")}</span>
 				<span class="data-value {result.iso ? '' : 'text-muted'}">{result.iso || "---"}</span>
 				{#if result.iso}
 					<button
 						class="btn-copy {copyFeedback['iso'] ? 'btn-copy-success' : ''}"
 						onclick={() => copyToClipboard(result.iso, 'iso')}
 					>
-						{copyFeedback['iso'] ? '✓' : 'CP'}
+						{copyFeedback['iso'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 					</button>
 				{/if}
 			</div>
 			<div class="data-row">
-				<span class="data-label">LOCAL:</span>
+				<span class="data-label">{translate("timestamp.details.local")}</span>
 				<span class="data-value {result.local ? '' : 'text-muted'}">{result.local || "---"}</span>
 				{#if result.local}
 					<button
 						class="btn-copy {copyFeedback['local'] ? 'btn-copy-success' : ''}"
 						onclick={() => copyToClipboard(result.local, 'local')}
 					>
-						{copyFeedback['local'] ? '✓' : 'CP'}
+						{copyFeedback['local'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 					</button>
 				{/if}
 			</div>
 			<div class="data-row">
-				<span class="data-label">UTC:</span>
+				<span class="data-label">{translate("timestamp.details.utc")}</span>
 				<span class="data-value {result.utc ? '' : 'text-muted'}">{result.utc || "---"}</span>
 				{#if result.utc}
 					<button
 						class="btn-copy {copyFeedback['utc'] ? 'btn-copy-success' : ''}"
 						onclick={() => copyToClipboard(result.utc, 'utc')}
 					>
-						{copyFeedback['utc'] ? '✓' : 'CP'}
+						{copyFeedback['utc'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
 					</button>
 				{/if}
 			</div>
