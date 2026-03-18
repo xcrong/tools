@@ -118,7 +118,39 @@ Epoch 5/10  loss: 0.3102  acc: 0.8841
 Epoch 10/10 loss: 0.1847  acc: 0.9312
 
 ✔ Training complete in 38.2s
-Model saved to ./checkpoints/model_final.pt`
+Model saved to ./checkpoints/model_final.pt`,
+
+		ollama: `$ ollama --help
+Large language model runner
+
+Usage:
+  ollama [flags]
+  ollama [command]
+
+Available Commands:
+  serve       Start Ollama
+  create      Create a model
+  show        Show information for a model
+  run         Run a model
+  stop        Stop a running model
+  pull        Pull a model from a registry
+  push        Push a model to a registry
+  signin      Sign in to ollama.com
+  signout     Sign out from ollama.com
+  list        List models
+  ps          List running models
+  cp          Copy a model
+  rm          Remove a model
+  launch      Launch the Ollama menu or an integration
+  help        Help about any command
+
+Flags:
+  -h, --help         help for ollama
+      --nowordwrap   Don't wrap words to the next line automatically
+      --verbose      Show timings for response
+  -v, --version      Show version information
+
+Use "ollama [command] --help" for more information about a command.`
 	};
 
 	const SPEED = {
@@ -141,6 +173,8 @@ Model saved to ./checkpoints/model_final.pt`
 
 	function loadExample(key: string) {
 		inputText = EXAMPLES[key];
+		// 自动触发生成
+		generate();
 	}
 
 	function parseInput(raw: string): Block[] {
@@ -160,10 +194,12 @@ Model saved to ./checkpoints/model_final.pt`
 		return blocks;
 	}
 
-	function classifyOut(text: string): 'dim' | 'ok' | 'err' | 'url' {
+	function classifyOut(text: string): 'dim' | 'ok' | 'err' | 'url' | 'highlight' {
 		if (/error|err|fail|fatal|not found|denied|✗|✘/i.test(text)) return 'err';
 		if (/✔|✓|success|done|ok|complete|ready|saved|built/i.test(text)) return 'ok';
 		if (/https?:\/\//i.test(text)) return 'url';
+		// 高亮显示标题类文本
+		if (/^(Usage:|Flags:|Available Commands:|Options:|Commands:|Arguments:|Examples:)/i.test(text.trim())) return 'highlight';
 		return 'dim';
 	}
 
@@ -213,11 +249,12 @@ Model saved to ./checkpoints/model_final.pt`
 		const TITLE_H = 38;
 		const CHAR_W = FONT_SIZE * 0.605;
 
+		// 移除首尾空行，但保留中间空行
 		while (blocks.length && blocks[0].type === 'empty') blocks.shift();
 		while (blocks.length && blocks[blocks.length - 1].type === 'empty') blocks.pop();
 		if (!blocks.length) return null;
 
-		// 计算内容总高度
+		// 计算内容总高度（包括空行）
 		const contentHeight = blocks.length * LINE_H;
 		const totalContentH = PAD_TOP + contentHeight + 32;
 
@@ -227,20 +264,20 @@ Model saved to ./checkpoints/model_final.pt`
 
 		// 可视区域高度（从 PAD_TOP 开始）
 		const visibleAreaH = VIEW_H - PAD_TOP;
-		
+
 		// 底部边距，让最后一行距离底部一定距离
 		const BOTTOM_PADDING = FONT_SIZE + 10;
 
 		// 是否需要滚动
 		const needsScroll = totalContentH > VIEW_H;
 		// 修正：减去底部边距，让最后一行距离底部一定距离
-		const scrollOffset = needsScroll ? totalContentH - VIEW_H + BOTTOM_PADDING : 0;
+		const scrollOffset = needsScroll ? Math.round((totalContentH - VIEW_H + BOTTOM_PADDING) / LINE_H) * LINE_H : 0;
 
 		let t = 300;
 		let idCounter = 0;
 		const defs: string[] = [];
 		const svgEls: string[] = [];
-		
+
 		// 记录每行完成显示的时间点（用于同步滚动）
 		const lineTimings: { lineIndex: number; completeTime: number; y: number }[] = [];
 
@@ -248,7 +285,8 @@ Model saved to ./checkpoints/model_final.pt`
 			dim: theme.outDim,
 			ok: theme.outOk,
 			err: theme.outErr,
-			url: theme.outUrl
+			url: theme.outUrl,
+			highlight: theme.text  // 使用默认文本颜色高亮
 		};
 
 		let i = 0;
@@ -389,7 +427,9 @@ Model saved to ./checkpoints/model_final.pt`
 				const lineBottom = lineTop + FONT_SIZE;
 
 				// 计算需要滚动多少才能让这行可见（考虑底部边距）
-				const neededScroll = Math.max(0, lineBottom - visibleAreaH + BOTTOM_PADDING);
+				// 使用 LINE_H 的整数倍确保对齐
+				const rawScroll = Math.max(0, lineBottom - visibleAreaH + BOTTOM_PADDING);
+				const neededScroll = Math.round(rawScroll / LINE_H) * LINE_H;
 
 				if (neededScroll > lastScrollPos) {
 					// 归一化时间（相对于总时长）
@@ -400,7 +440,7 @@ Model saved to ./checkpoints/model_final.pt`
 				}
 			}
 
-			// 确保最终滚动到正确位置（在内容全部显示后完成）
+			// 确保最终滚动到正确位置
 			if (lastScrollPos < scrollOffset) {
 				const normalizedTime = (t + 500) / (t + 500);
 				scrollKeyTimes.push(normalizedTime.toFixed(4));
@@ -558,6 +598,44 @@ $ git commit -m &quot;fix: update styles&quot;
 		</button>
 	</div>
 
+	<!-- 预览面板 -->
+	{#if lastSVG}
+		<div class="tool-card animate-fade-in">
+			<div class="flex items-center justify-between mb-5">
+				<div class="flex items-center">
+					<div class="icon-box icon-box-pink">
+						<svg class="w-5 h-5 text-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+					</svg>
+					</div>
+					<h2 class="card-title">预览 // PREVIEW</h2>
+				</div>
+				{#if previewMeta}
+					<span class="font-mono text-sm text-muted">{previewMeta}</span>
+				{/if}
+			</div>
+
+			{#key replayKey}
+			<div class="preview-container mb-5">
+				{@html lastSVG}
+			</div>
+			{/key}
+
+			<div class="flex gap-3 flex-wrap">
+				<button class="btn-primary btn-primary-filled flex-1 min-w-[120px]" onclick={downloadSVG}>
+					<span class="font-mono">↓ SVG</span>
+				</button>
+				<button class="btn-secondary flex-1 min-w-[120px]" onclick={copySVG}>
+					<span class="font-mono">{copyFeedback ? '✓ COPIED' : 'COPY'}</span>
+				</button>
+				<button class="btn-secondary flex-1 min-w-[120px]" onclick={replaySVG}>
+					<span class="font-mono">↻ REPLAY</span>
+				</button>
+			</div>
+		</div>
+	{/if}
+
 	<!-- 示例模板 -->
 	<div class="tool-card mb-5">
 		<div class="flex items-center mb-4">
@@ -578,6 +656,9 @@ $ git commit -m &quot;fix: update styles&quot;
 			</button>
 			<button class="btn-secondary" onclick={() => loadExample('python')}>
 				<span class="font-mono text-sm">python 脚本</span>
+			</button>
+			<button class="btn-secondary" onclick={() => loadExample('ollama')}>
+				<span class="font-mono text-sm">ollama help</span>
 			</button>
 		</div>
 	</div>
@@ -607,44 +688,6 @@ $ git commit -m &quot;fix: update styles&quot;
 			</div>
 		</div>
 	</div>
-
-	<!-- 预览面板 -->
-	{#if lastSVG}
-		<div class="tool-card animate-fade-in">
-			<div class="flex items-center justify-between mb-5">
-				<div class="flex items-center">
-					<div class="icon-box icon-box-pink">
-						<svg class="w-5 h-5 text-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-					</svg>
-					</div>
-					<h2 class="card-title">预览 // PREVIEW</h2>
-				</div>
-				{#if previewMeta}
-					<span class="font-mono text-sm text-muted">{previewMeta}</span>
-				{/if}
-			</div>
-
-			{#key replayKey}
-			<div class="preview-container mb-5">
-				{@html lastSVG}
-			</div>
-			{/key}
-
-			<div class="flex gap-3">
-				<button class="btn-primary btn-primary-filled flex-1" onclick={downloadSVG}>
-					<span class="font-mono">↓ DOWNLOAD</span>
-				</button>
-				<button class="btn-secondary flex-1" onclick={copySVG}>
-					<span class="font-mono">{copyFeedback ? '✓ COPIED' : 'COPY SVG'}</span>
-				</button>
-				<button class="btn-secondary flex-1" onclick={replaySVG}>
-					<span class="font-mono">↻ REPLAY</span>
-				</button>
-			</div>
-		</div>
-	{/if}
 </div>
 
 <style>
