@@ -37,6 +37,7 @@ coverage/
 # Screenshots (used for documentation)
 *.jpg
 *.png
+!static/*.png
 
 # Temporary files
 *.tmp

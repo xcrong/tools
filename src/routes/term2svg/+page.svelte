@@ -528,6 +528,21 @@ ${contentGroup}
 <svelte:head>
 	<title>{translate("term2svg.title")} - {translate("common.title")}</title>
 	<meta name="description" content={translate("term2svg.description")} />
+	
+	<!-- Open Graph -->
+	<meta property="og:title" content={translate("term2svg.title")} />
+	<meta property="og:description" content={translate("term2svg.description")} />
+	<meta property="og:image" content="https://tools.xcrong.me/og-image-term2svg.png" />
+	<meta property="og:image:alt" content="term2svg - Terminal to Animated SVG Converter" />
+	<meta property="og:url" content="https://tools.xcrong.me/term2svg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:title" content={translate("term2svg.title")} />
+	<meta name="twitter:description" content={translate("term2svg.description")} />
+	<meta name="twitter:image" content="https://tools.xcrong.me/og-image-term2svg.png" />
+	<meta name="twitter:image:alt" content="term2svg - Terminal to Animated SVG Converter" />
 </svelte:head>
 
 <div class="content-container">

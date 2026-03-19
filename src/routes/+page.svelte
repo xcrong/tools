@@ -1,10 +1,28 @@
 <script lang="ts">
 	import { translate } from "$lib/i18n/store.svelte";
+	
+	const siteUrl = 'https://tools.xcrong.me';
+	const ogImage = '/og-image.png';
 </script>
 
 <svelte:head>
 	<title>{translate("common.title")}</title>
 	<meta name="description" content={translate("common.description")} />
+	
+	<!-- Open Graph -->
+	<meta property="og:title" content={translate("common.title")} />
+	<meta property="og:description" content={translate("common.description")} />
+	<meta property="og:image" content={`${siteUrl}${ogImage}`} />
+	<meta property="og:image:alt" content="Developer Tools - Cyber Terminal Style" />
+	<meta property="og:url" content={siteUrl} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:title" content={translate("common.title")} />
+	<meta name="twitter:description" content={translate("common.description")} />
+	<meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
+	<meta name="twitter:image:alt" content="Developer Tools - Cyber Terminal Style" />
 </svelte:head>
 
 <div class="content-container grid-bg">

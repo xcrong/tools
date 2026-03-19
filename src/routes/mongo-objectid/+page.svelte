@@ -112,6 +112,21 @@
 		name="description"
 		content={translate("mongoObjectId.description")}
 	/>
+	
+	<!-- Open Graph -->
+	<meta property="og:title" content={translate("mongoObjectId.title")} />
+	<meta property="og:description" content={translate("mongoObjectId.description")} />
+	<meta property="og:image" content="https://tools.xcrong.me/og-image-mongo.png" />
+	<meta property="og:image:alt" content="MongoDB ObjectId Converter - Cyber Terminal Style" />
+	<meta property="og:url" content="https://tools.xcrong.me/mongo-objectid" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	
+	<!-- Twitter Card -->
+	<meta name="twitter:title" content={translate("mongoObjectId.title")} />
+	<meta name="twitter:description" content={translate("mongoObjectId.description")} />
+	<meta name="twitter:image" content="https://tools.xcrong.me/og-image-mongo.png" />
+	<meta name="twitter:image:alt" content="MongoDB ObjectId Converter - Cyber Terminal Style" />
 </svelte:head>
 
 <div class="content-container">
