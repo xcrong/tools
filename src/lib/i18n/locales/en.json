@@ -192,6 +192,10 @@
     "preview": {
       "title": "Preview // PREVIEW",
       "download": "↓ SVG",
+      "downloadWebm": "↓ WEBM",
+      "exportingWebm": "EXPORTING...",
+      "webmUnsupported": "This browser does not support WebM export",
+      "webmExportFailed": "WebM export failed. Please try again.",
       "copy": "COPY",
       "replay": "↻ REPLAY"
     },

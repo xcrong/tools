@@ -192,6 +192,10 @@
     "preview": {
       "title": "预览 // PREVIEW",
       "download": "下载 SVG",
+      "downloadWebm": "下载 WebM",
+      "exportingWebm": "导出中...",
+      "webmUnsupported": "当前浏览器不支持 WebM 导出",
+      "webmExportFailed": "WebM 导出失败，请重试。",
       "copy": "复制",
       "replay": "重播"
     },

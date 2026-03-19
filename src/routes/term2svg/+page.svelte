@@ -1,67 +1,18 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { translate } from "$lib/i18n/store.svelte";
+	import { onMount } from 'svelte'
+	import { i18n, translate } from '$lib/i18n/store.svelte'
+	import { SPEED, THEMES } from '$lib/utils/term2svg/constants'
+	import {
+		canExportWebM,
+		exportTimelineToWebM,
+	} from '$lib/utils/term2svg/export-webm'
+	import { renderSVG } from '$lib/utils/term2svg/render-svg'
+	import {
+		buildTimeline,
+		parseInput,
+		type TerminalTimeline,
+	} from '$lib/utils/term2svg/timeline'
 
-	// 主题配置
-	const THEMES: Record<string, ThemeConfig> = {
-		catppuccin: {
-			bg: '#1e1e2e', titleBar: '#313244', text: '#cdd6f4',
-			prompt: '#a6e3a1', cmd: '#cdd6f4', comment: '#6c7086',
-			outDim: '#7f849c', outOk: '#a6e3a1', outErr: '#f38ba8', outUrl: '#89b4fa',
-			cursor: '#f5c2e7'
-		},
-		dracula: {
-			bg: '#282a36', titleBar: '#383a59', text: '#f8f8f2',
-			prompt: '#50fa7b', cmd: '#f8f8f2', comment: '#6272a4',
-			outDim: '#6272a4', outOk: '#50fa7b', outErr: '#ff5555', outUrl: '#8be9fd',
-			cursor: '#ff79c6'
-		},
-		tokyo: {
-			bg: '#1a1b26', titleBar: '#24283b', text: '#c0caf5',
-			prompt: '#9ece6a', cmd: '#c0caf5', comment: '#565f89',
-			outDim: '#565f89', outOk: '#9ece6a', outErr: '#f7768e', outUrl: '#7aa2f7',
-			cursor: '#bb9af7'
-		},
-		gruvbox: {
-			bg: '#282828', titleBar: '#3c3836', text: '#ebdbb2',
-			prompt: '#b8bb26', cmd: '#ebdbb2', comment: '#928374',
-			outDim: '#928374', outOk: '#b8bb26', outErr: '#fb4934', outUrl: '#83a598',
-			cursor: '#fabd2f'
-		},
-		nord: {
-			bg: '#2e3440', titleBar: '#3b4252', text: '#d8dee9',
-			prompt: '#a3be8c', cmd: '#d8dee9', comment: '#4c566a',
-			outDim: '#4c566a', outOk: '#a3be8c', outErr: '#bf616a', outUrl: '#88c0d0',
-			cursor: '#ebcb8b'
-		},
-		light: {
-			bg: '#fafafa', titleBar: '#e5e5e5', text: '#383a42',
-			prompt: '#50a14f', cmd: '#383a42', comment: '#a0a1a7',
-			outDim: '#a0a1a7', outOk: '#50a14f', outErr: '#e45649', outUrl: '#4078f2',
-			cursor: '#986801'
-		}
-	};
-
-	interface ThemeConfig {
-		bg: string;
-		titleBar: string;
-		text: string;
-		prompt: string;
-		cmd: string;
-		comment: string;
-		outDim: string;
-		outOk: string;
-		outErr: string;
-		outUrl: string;
-		cursor: string;
-	}
-
-	interface Block {
-		type: 'cmd' | 'out' | 'empty';
-		text: string;
-	}
-
-	// 示例数据
 	const EXAMPLES: Record<string, string> = {
 		git: `$ git status
 On branch main
@@ -152,377 +103,129 @@ Flags:
   -v, --version      Show version information
 
 Use "ollama [command] --help" for more information about a command.`
-	};
+	}
 
-	const SPEED = {
-		fast: { charMs: 28, cmdGap: 400, outGap: 80 },
-		normal: { charMs: 48, cmdGap: 700, outGap: 120 },
-		slow: { charMs: 80, cmdGap: 1100, outGap: 200 }
-	};
+	let inputText = $state(EXAMPLES.git)
+	let theme = $state('catppuccin')
+	let promptStr = $state('~')
+	let speed = $state('normal')
+	let svgWidth = $state(720)
+	let maxHeight = $state(400)
+	let lastSVG = $state('')
+	let lastTimeline = $state<TerminalTimeline | null>(null)
+	let previewMeta = $state('')
+	let copyFeedback = $state(false)
+	let replayKey = $state(0)
+	let isExportingWebm = $state(false)
+	let exportProgressText = $state('')
+	let exportError = $state('')
+	let webmSupported = $state(true)
 
-	// 状态
-	let inputText = $state(EXAMPLES.git);
-	let theme = $state('catppuccin');
-	let promptStr = $state('~');
-	let speed = $state('normal');
-	let svgWidth = $state(720);
-	let maxHeight = $state(400); // 0 = auto
-	let lastSVG = $state('');
-	let previewMeta = $state('');
-	let copyFeedback = $state(false);
-	let replayKey = $state(0); // 用于强制重新渲染 SVG
+	function formatPreviewMeta(lineCount: number, timeline: TerminalTimeline): string {
+		const seconds = (timeline.durationMs / 1000).toFixed(1)
+		const size = `${timeline.layout.width}×${timeline.layout.height}`
+
+		if (i18n.locale === 'zh') {
+			return `${lineCount} 行 · ${seconds}s · ${size}`
+		}
+
+		return `${lineCount} lines · ${seconds}s · ${size}`
+	}
+
+	function triggerDownload(blob: Blob, filename: string) {
+		const url = URL.createObjectURL(blob)
+		const link = document.createElement('a')
+		link.href = url
+		link.download = filename
+		link.click()
+
+		window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+	}
 
 	function loadExample(key: string) {
-		inputText = EXAMPLES[key];
-		// 自动触发生成
-		generate();
-	}
-
-	function parseInput(raw: string): Block[] {
-		const lines = raw.split('\n');
-		const blocks: Block[] = [];
-		for (const line of lines) {
-			const trimmed = line.trimStart();
-			if (trimmed === '') {
-				blocks.push({ type: 'empty', text: '' });
-			} else if (/^[$%#!]\s/.test(trimmed) || trimmed === '$' || trimmed === '%') {
-				const cmd = trimmed.replace(/^[$%#!]\s*/, '');
-				blocks.push({ type: 'cmd', text: cmd });
-			} else {
-				blocks.push({ type: 'out', text: line });
-			}
-		}
-		return blocks;
-	}
-
-	function classifyOut(text: string): 'dim' | 'ok' | 'err' | 'url' | 'highlight' {
-		if (/error|err|fail|fatal|not found|denied|✗|✘/i.test(text)) return 'err';
-		if (/✔|✓|success|done|ok|complete|ready|saved|built/i.test(text)) return 'ok';
-		if (/https?:\/\//i.test(text)) return 'url';
-		// 高亮显示标题类文本
-		if (/^(Usage:|Flags:|Available Commands:|Options:|Commands:|Arguments:|Examples:)/i.test(text.trim())) return 'highlight';
-		return 'dim';
-	}
-
-	function ms(n: number): string {
-		return (n / 1000).toFixed(3) + 's';
-	}
-
-	function escXML(s: string): string {
-		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+		inputText = EXAMPLES[key] || EXAMPLES.git
+		generate()
 	}
 
 	function generate() {
-		const raw = inputText.trim();
+		const raw = inputText.trim()
 		if (!raw) {
-			alert(translate("term2svg.errors.emptyInput"));
-			return;
+			alert(translate('term2svg.errors.emptyInput'))
+			return
 		}
 
-		const blocks = parseInput(raw);
-		const opts = {
+		exportError = ''
+		const blocks = parseInput(raw)
+		const timeline = buildTimeline(blocks, {
 			theme: THEMES[theme] || THEMES.catppuccin,
 			prompt: promptStr || '~',
 			speed: SPEED[speed as keyof typeof SPEED] || SPEED.normal,
 			width: svgWidth,
-			maxHeight: maxHeight > 0 ? maxHeight : 0
-		};
+			maxHeight: maxHeight > 0 ? maxHeight : 0,
+		})
 
-		const svg = buildSVG(blocks, opts);
-		if (!svg) {
-			alert(translate("term2svg.errors.noContent"));
-			return;
+		if (!timeline) {
+			alert(translate('term2svg.errors.noContent'))
+			return
 		}
 
-		lastSVG = svg;
-		const lineCount = blocks.filter(b => b.type !== 'empty').length;
-		previewMeta = `${lineCount} lines`;
-	}
-
-	function buildSVG(blocks: Block[], opts: { theme: ThemeConfig; prompt: string; speed: { charMs: number; cmdGap: number; outGap: number }; width: number; maxHeight: number }): string | null {
-		const theme = opts.theme;
-		const spd = opts.speed;
-		const W = opts.width;
-		const FONT_SIZE = 13;
-		const LINE_H = 22;
-		const PAD_X = 22;
-		const PAD_TOP = 58;
-		const TITLE_H = 38;
-		const CHAR_W = FONT_SIZE * 0.605;
-
-		// 移除首尾空行，但保留中间空行
-		while (blocks.length && blocks[0].type === 'empty') blocks.shift();
-		while (blocks.length && blocks[blocks.length - 1].type === 'empty') blocks.pop();
-		if (!blocks.length) return null;
-
-		// 计算内容总高度（包括空行）
-		const contentHeight = blocks.length * LINE_H;
-		const totalContentH = PAD_TOP + contentHeight + 32;
-
-		// 确定可视区域高度（使用 maxHeight 或自动）
-		const VIEW_H = opts.maxHeight > TITLE_H + 50 ? opts.maxHeight : totalContentH;
-		const H = VIEW_H;
-
-		// 可视区域高度（从 PAD_TOP 开始）
-		const visibleAreaH = VIEW_H - PAD_TOP;
-
-		// 底部边距，让最后一行距离底部一定距离
-		const BOTTOM_PADDING = FONT_SIZE + 10;
-
-		// 是否需要滚动
-		const needsScroll = totalContentH > VIEW_H;
-		// 修正：减去底部边距，让最后一行距离底部一定距离
-		const scrollOffset = needsScroll ? Math.round((totalContentH - VIEW_H + BOTTOM_PADDING) / LINE_H) * LINE_H : 0;
-
-		let t = 300;
-		let idCounter = 0;
-		const defs: string[] = [];
-		const svgEls: string[] = [];
-
-		// 记录每行完成显示的时间点（用于同步滚动）
-		const lineTimings: { lineIndex: number; completeTime: number; y: number }[] = [];
-
-		const colorMap: Record<string, string> = {
-			dim: theme.outDim,
-			ok: theme.outOk,
-			err: theme.outErr,
-			url: theme.outUrl,
-			highlight: theme.text  // 使用默认文本颜色高亮
-		};
-
-		let i = 0;
-		while (i < blocks.length) {
-			const b = blocks[i];
-			const y = PAD_TOP + i * LINE_H + FONT_SIZE;
-
-			if (b.type === 'empty') { i++; continue; }
-
-			if (b.type === 'cmd') {
-				const id = `e${idCounter++}`;
-				const promptTx = opts.prompt + ' $ ';
-				const promptW = promptTx.length * CHAR_W;
-				const cmdTx = b.text;
-				const charCount = Math.max(cmdTx.length, 1);
-				const cmdW = charCount * CHAR_W;
-				const typeDur = Math.max(charCount * spd.charMs, 150);
-				const lineX = PAD_X + promptW;
-
-				const keyTimes: string[] = [];
-				const values: string[] = [];
-				for (let k = 0; k <= charCount; k++) {
-					keyTimes.push((k / charCount).toFixed(4));
-					values.push(Math.round(k * cmdW / charCount).toString());
-				}
-
-				defs.push(`
-  <clipPath id="clip_${id}">
-    <rect x="${lineX}" y="${y - FONT_SIZE}" width="0" height="${FONT_SIZE + 4}">
-      <animate attributeName="width"
-        from="0" to="${cmdW + 2}"
-        begin="${ms(t)}" dur="${ms(typeDur)}"
-        calcMode="discrete"
-        keyTimes="${keyTimes.join(';')}"
-        values="${values.join(';')}"
-        fill="freeze"/>
-    </rect>
-  </clipPath>`);
-
-				const cursorValues: string[] = [];
-				for (let k = 0; k <= charCount; k++) {
-					cursorValues.push((lineX + Math.round(k * cmdW / charCount)).toString());
-				}
-
-				svgEls.push(`
-  <g opacity="0">
-    <animate attributeName="opacity" from="0" to="1"
-      begin="${ms(t)}" dur="0.001s" fill="freeze"/>
-    <text x="${PAD_X}" y="${y}" font-size="${FONT_SIZE}"
-      font-family="'JetBrains Mono','Courier New',monospace"
-      fill="${theme.prompt}">${escXML(promptTx)}</text>
-    <text x="${lineX}" y="${y}" font-size="${FONT_SIZE}"
-      font-family="'JetBrains Mono','Courier New',monospace"
-      fill="${theme.cmd}"
-      clip-path="url(#clip_${id})">${escXML(cmdTx)}</text>
-    <text y="${y}" font-size="${FONT_SIZE}"
-      font-family="'JetBrains Mono','Courier New',monospace"
-      fill="${theme.cursor}">
-      <animate attributeName="x"
-        from="${lineX}" to="${lineX + cmdW}"
-        begin="${ms(t)}" dur="${ms(typeDur)}"
-        calcMode="discrete"
-        keyTimes="${keyTimes.join(';')}"
-        values="${cursorValues.join(';')}"
-        fill="freeze"/>
-      <animate attributeName="opacity" values="1;0;1;0;1;0;1;0;1;0;0"
-        keyTimes="0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9;1"
-        begin="${ms(t)}" dur="${ms(typeDur + 500)}" fill="freeze"/>
-      █</text>
-  </g>`);
-
-				const cmdCompleteTime = t + typeDur;
-				lineTimings.push({ lineIndex: i, completeTime: cmdCompleteTime, y });
-				t = cmdCompleteTime + spd.cmdGap;
-				i++;
-
-				let outIdx = 0;
-				while (i < blocks.length && blocks[i].type === 'out') {
-					const ob = blocks[i];
-					const oy = PAD_TOP + i * LINE_H + FONT_SIZE;
-					const col = colorMap[classifyOut(ob.text)] || theme.outDim;
-					const delay = t + outIdx * spd.outGap;
-					const outCompleteTime = delay + 80;
-
-					svgEls.push(`
-  <text x="${PAD_X}" y="${oy}" font-size="${FONT_SIZE}"
-    font-family="'JetBrains Mono','Courier New',monospace"
-    fill="${col}" opacity="0">
-    <animate attributeName="opacity" from="0" to="1"
-      begin="${ms(delay)}" dur="0.001s" fill="freeze"/>
-    ${escXML(ob.text)}</text>`);
-
-					lineTimings.push({ lineIndex: i, completeTime: outCompleteTime, y: oy });
-					t = outCompleteTime;
-					outIdx++;
-					i++;
-				}
-				if (outIdx > 0) t += spd.cmdGap * 0.4;
-
-			} else if (b.type === 'out') {
-				const col = colorMap[classifyOut(b.text)] || theme.outDim;
-				const outCompleteTime = t + 80;
-				svgEls.push(`
-  <text x="${PAD_X}" y="${y}" font-size="${FONT_SIZE}"
-    font-family="'JetBrains Mono','Courier New',monospace"
-    fill="${col}" opacity="0">
-    <animate attributeName="opacity" from="0" to="1"
-      begin="${ms(t)}" dur="0.001s" fill="freeze"/>
-    ${escXML(b.text)}</text>`);
-				lineTimings.push({ lineIndex: i, completeTime: outCompleteTime, y });
-				t = outCompleteTime + spd.outGap;
-				i++;
-			} else {
-				i++;
-			}
-		}
-
-		// 添加内容裁剪区域（用于滚动时裁剪超出部分）
-		const clipId = `contentClip${Date.now()}`;
-		if (needsScroll) {
-			// 裁剪区域从 PAD_TOP 开始，确保与内容起始位置一致
-			defs.push(`  <clipPath id="${clipId}">
-    <rect x="0" y="${PAD_TOP}" width="${W}" height="${visibleAreaH}"/>
-  </clipPath>`);
-		}
-
-		// 计算滚动动画参数 - 与内容生成同步
-		let scrollAnim = '';
-		if (needsScroll && scrollOffset > 0) {
-			const scrollKeyTimes: string[] = ['0'];
-			const scrollValues: string[] = ['0'];
-
-			// 为每个需要滚动的行添加关键帧
-			let lastScrollPos = 0;
-
-			for (const timing of lineTimings) {
-				const lineTop = timing.y - PAD_TOP;
-				const lineBottom = lineTop + FONT_SIZE;
-
-				// 计算需要滚动多少才能让这行可见（考虑底部边距）
-				// 使用 LINE_H 的整数倍确保对齐
-				const rawScroll = Math.max(0, lineBottom - visibleAreaH + BOTTOM_PADDING);
-				const neededScroll = Math.round(rawScroll / LINE_H) * LINE_H;
-
-				if (neededScroll > lastScrollPos) {
-					// 归一化时间（相对于总时长）
-					const normalizedTime = timing.completeTime / (t + 500);
-					scrollKeyTimes.push(normalizedTime.toFixed(4));
-					scrollValues.push(neededScroll.toString());
-					lastScrollPos = neededScroll;
-				}
-			}
-
-			// 确保最终滚动到正确位置
-			if (lastScrollPos < scrollOffset) {
-				const normalizedTime = (t + 500) / (t + 500);
-				scrollKeyTimes.push(normalizedTime.toFixed(4));
-				scrollValues.push(scrollOffset.toString());
-			}
-
-			// 去重并保持时间递增
-			const uniqueKeyTimes: string[] = [];
-			const uniqueValues: string[] = [];
-			let lastTime = -1;
-			for (let j = 0; j < scrollKeyTimes.length; j++) {
-				const timeVal = parseFloat(scrollKeyTimes[j]);
-				if (timeVal > lastTime) {
-					uniqueKeyTimes.push(scrollKeyTimes[j]);
-					// 垂直向上滚动：x=0, y=-scrollValue
-					uniqueValues.push(`0 -${scrollValues[j]}`);
-					lastTime = timeVal;
-				} else if (timeVal === lastTime && j === scrollKeyTimes.length - 1) {
-					// 最后一个时间点使用最大滚动值
-					uniqueValues[uniqueValues.length - 1] = `0 -${scrollValues[j]}`;
-				}
-			}
-
-			scrollAnim = `  <animateTransform attributeName="transform" type="translate"
-    from="0 0" to="0 -${scrollOffset}"
-    begin="0s" dur="${ms(t + 500)}"
-    calcMode="discrete"
-    keyTimes="${uniqueKeyTimes.join(';')}"
-    values="${uniqueValues.join(';')}"
-    fill="freeze"/>`;
-		}
-
-		// 包装内容：外层应用裁剪，内层应用滚动变换
-		const contentGroup = needsScroll
-			? `<g clip-path="url(#${clipId})">
-  <g>
-    ${scrollAnim}
-${svgEls.join('\n')}
-  </g>
-</g>`
-			: svgEls.join('\n');
-
-		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-<defs>
-${defs.join('\n')}
-</defs>
-<rect width="${W}" height="${H}" rx="12" fill="${theme.bg}"/>
-${contentGroup}
-<rect width="${W}" height="${TITLE_H}" rx="12" fill="${theme.titleBar}"/>
-<rect y="${TITLE_H - 6}" width="${W}" height="6" fill="${theme.titleBar}"/>
-<circle cx="18" cy="${TITLE_H / 2}" r="6" fill="#ff6b6b"/>
-<circle cx="38" cy="${TITLE_H / 2}" r="6" fill="#ffd93d"/>
-<circle cx="58" cy="${TITLE_H / 2}" r="6" fill="#6bcb77"/>
-<text x="${W / 2}" y="${TITLE_H / 2 + 5}" text-anchor="middle" fill="${theme.outDim}" font-size="12" font-family="'JetBrains Mono','Courier New',monospace">${escXML(opts.prompt)} — bash</text>
-</svg>`;
+		lastTimeline = timeline
+		lastSVG = renderSVG(timeline)
+		const lineCount = timeline.lines.filter((line) => line.kind !== 'empty').length
+		previewMeta = formatPreviewMeta(lineCount, timeline)
 	}
 
 	function downloadSVG() {
-		if (!lastSVG) return;
-		const blob = new Blob([lastSVG], { type: 'image/svg+xml' });
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = 'terminal-animation.svg';
-		a.click();
+		if (!lastSVG) return
+		triggerDownload(new Blob([lastSVG], { type: 'image/svg+xml' }), 'terminal-animation.svg')
+	}
+
+	async function downloadWebM() {
+		if (!lastTimeline) return
+		if (!webmSupported) {
+			exportError = translate('term2svg.preview.webmUnsupported')
+			return
+		}
+
+		const timeline = lastTimeline
+		isExportingWebm = true
+		exportError = ''
+		exportProgressText = translate('term2svg.preview.exportingWebm')
+
+		try {
+			const result = await exportTimelineToWebM(timeline, {
+				fps: 30,
+				onProgress: (progress) => {
+					exportProgressText = `${translate('term2svg.preview.exportingWebm')} ${Math.round(progress * 100)}%`
+				},
+			})
+
+			triggerDownload(result.blob, result.filename)
+		} catch (error) {
+			console.error(error)
+			exportError = translate('term2svg.preview.webmExportFailed')
+		} finally {
+			isExportingWebm = false
+			exportProgressText = ''
+		}
 	}
 
 	function copySVG() {
-		if (!lastSVG) return;
+		if (!lastSVG) return
 		navigator.clipboard.writeText(lastSVG).then(() => {
-			copyFeedback = true;
-			setTimeout(() => copyFeedback = false, 1500);
-		});
+			copyFeedback = true
+			setTimeout(() => (copyFeedback = false), 1500)
+		})
 	}
 
 	function replaySVG() {
-		replayKey++;
+		replayKey++
 	}
 
 	onMount(() => {
-		generate();
-	});
+		webmSupported = canExportWebM()
+		generate()
+	})
 </script>
 
 <svelte:head>
@@ -632,6 +335,17 @@ ${contentGroup}
 				<button class="btn-primary btn-primary-filled flex-1 min-w-[120px]" onclick={downloadSVG}>
 					<span class="font-mono">{translate("term2svg.preview.download")}</span>
 				</button>
+				<button
+					class="btn-primary btn-primary-filled flex-1 min-w-[120px]"
+					onclick={downloadWebM}
+					disabled={isExportingWebm || !webmSupported}
+				>
+					<span class="font-mono">
+						{isExportingWebm
+							? exportProgressText || translate("term2svg.preview.exportingWebm")
+							: translate("term2svg.preview.downloadWebm")}
+					</span>
+				</button>
 				<button class="btn-secondary flex-1 min-w-[120px]" onclick={copySVG}>
 					<span class="font-mono">{copyFeedback ? '✓ ' + translate("common.copied").toUpperCase() : translate("term2svg.preview.copy")}</span>
 				</button>
@@ -639,6 +353,12 @@ ${contentGroup}
 					<span class="font-mono">{translate("term2svg.preview.replay")}</span>
 				</button>
 			</div>
+
+			{#if !webmSupported || exportError}
+				<p class="mt-3 font-mono text-sm" style="color: var(--neon-yellow);">
+					{exportError || translate("term2svg.preview.webmUnsupported")}
+				</p>
+			{/if}
 		</div>
 	{/if}
 
