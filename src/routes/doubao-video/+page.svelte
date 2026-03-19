@@ -1,59 +1,86 @@
 <script lang="ts">
 	// Cloudflare Worker API 地址
-	const API_URL = 'https://doubao.wjhsjbsish.workers.dev';
+	const API_BASE = 'https://doubao.wjhsjbsish.workers.dev'
 	import { translate } from "$lib/i18n/store.svelte";
 
-	let shareUrl = $state("");
-	let loading = $state(false);
-	let videoInfo: any = $state(null);
-	let error = $state("");
-	let copyFeedback = $state<Record<string, boolean>>({});
+	interface PlayInfo {
+		main: string
+		backup?: string
+		width: number
+		height: number
+		definition: string
+		poster_url?: string
+	}
+
+	interface UserInfo {
+		user_id?: number
+		nickname?: string
+	}
+
+	interface VideoInfo {
+		shareId: string
+		videoId: string
+		play_info: PlayInfo
+		user_info?: UserInfo
+		prompt?: string
+		stream_url: string
+		backup_stream_url?: string | null
+		download_url: string
+		backup_download_url?: string | null
+	}
+
+	let shareUrl = $state('')
+	let loading = $state(false)
+	let videoInfo = $state<VideoInfo | null>(null)
+	let error = $state('')
+	let copyFeedback = $state<Record<string, boolean>>({})
 
 	async function parseUrl() {
 		if (!shareUrl) {
-			error = translate("doubaoVideo.errors.emptyUrl");
+			error = translate('doubaoVideo.errors.emptyUrl')
 			return;
 		}
 
-		loading = true;
-		error = "";
-		videoInfo = null;
+		loading = true
+		error = ''
+		videoInfo = null
 
 		try {
-			const response = await fetch(API_URL, {
-				method: "POST",
+			const response = await fetch(`${API_BASE}/parse`, {
+				method: 'POST',
 				headers: {
-					"Content-Type": "application/json",
+					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({ shareUrl }),
-			});
+			})
 
-			const data = await response.json();
+			const data = (await response.json()) as VideoInfo | { error?: string }
+			const responseError = 'error' in data ? data.error : undefined
 
 			if (!response.ok) {
-				throw new Error(data.error || translate("doubaoVideo.errors.parseFailed"));
+				throw new Error(responseError || translate('doubaoVideo.errors.parseFailed'))
 			}
 
-			videoInfo = data;
+			videoInfo = data as VideoInfo
 		} catch (e) {
-			error = (e as Error).message || translate("doubaoVideo.errors.parseFailed");
+			error = (e as Error).message || translate('doubaoVideo.errors.parseFailed')
 		} finally {
-			loading = false;
+			loading = false
 		}
 	}
 
 	function copyToClipboard(text: string, key: string) {
 		navigator.clipboard.writeText(text).then(() => {
-			copyFeedback[key] = true;
-			setTimeout(() => (copyFeedback[key] = false), 1500);
+			copyFeedback[key] = true
+			setTimeout(() => (copyFeedback[key] = false), 1500)
 		}).catch(() => {
-			alert(translate("doubaoVideo.errors.copyFailed"));
-		});
+			alert(translate('doubaoVideo.errors.copyFailed'))
+		})
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' && !loading) {
-			parseUrl();
+			parseUrl()
 		}
 	}
 </script>
@@ -145,6 +172,49 @@
 					<h3 class="card-title">{translate("doubaoVideo.info.title")}</h3>
 				</div>
 
+				<div class="mb-5">
+					<div class="data-block-label mb-2">{translate("doubaoVideo.info.preview")}</div>
+					<video
+						class="video-player"
+						controls
+						playsinline
+						preload="metadata"
+						poster={videoInfo.play_info.poster_url}
+						src={videoInfo.stream_url}
+					>
+						<track kind="captions" />
+					</video>
+					<div class="action-row mt-3">
+						<a
+							href={videoInfo.download_url}
+							target="_blank"
+							rel="noreferrer"
+							class="btn-primary"
+							style="border-color: var(--neon-green); color: var(--neon-green);"
+						>
+							<span class="font-mono">{translate("doubaoVideo.info.download")}</span>
+						</a>
+						<button
+							onclick={() => copyToClipboard(videoInfo?.stream_url ?? '', 'stream')}
+							class="btn-secondary"
+						>
+							<span class="font-mono">
+								{copyFeedback['stream'] ? '✓' : translate("doubaoVideo.info.copyStream")}
+							</span>
+						</button>
+						{#if videoInfo.backup_stream_url}
+							<a
+								href={videoInfo.backup_stream_url}
+								target="_blank"
+								rel="noreferrer"
+								class="btn-secondary"
+							>
+								<span class="font-mono">{translate("doubaoVideo.info.backupPlay")}</span>
+							</a>
+						{/if}
+					</div>
+				</div>
+
 				<!-- 视频封面 -->
 				{#if videoInfo.play_info?.poster_url}
 					<div class="mb-5">
@@ -182,15 +252,15 @@
 					</div>
 				</div>
 				
-				<!-- 视频链接 -->
+				<!-- Worker 代理链接 -->
 				<div class="data-block mb-3">
 					<div class="data-block-label">{translate("doubaoVideo.info.videoUrl")}</div>
 					<div class="flex gap-2 items-start mt-2">
 						<div class="flex-1 p-3 rounded-lg font-mono text-sm break-all code-block">
-							{videoInfo.play_info.main}
+							{videoInfo.stream_url}
 						</div>
 						<button
-							onclick={() => copyToClipboard(videoInfo.play_info.main, 'video')}
+							onclick={() => copyToClipboard(videoInfo?.stream_url ?? '', 'video')}
 							class="btn-copy {copyFeedback['video'] ? 'btn-copy-success' : ''} whitespace-nowrap"
 						>
 							{copyFeedback['video'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
@@ -204,10 +274,10 @@
 						<div class="data-block-label">{translate("doubaoVideo.info.backupUrl")}</div>
 						<div class="flex gap-2 items-start mt-2">
 							<div class="flex-1 p-3 rounded-lg font-mono text-sm break-all code-block opacity-70">
-								{videoInfo.play_info.backup}
+								{videoInfo.backup_stream_url || videoInfo.play_info.backup}
 							</div>
 							<button
-								onclick={() => copyToClipboard(videoInfo.play_info.backup, 'backup')}
+								onclick={() => copyToClipboard(videoInfo?.backup_stream_url || videoInfo?.play_info.backup || '', 'backup')}
 								class="btn-copy {copyFeedback['backup'] ? 'btn-copy-success' : ''} whitespace-nowrap"
 							>
 								{copyFeedback['backup'] ? '✓' : translate("common.copy").toUpperCase().substring(0, 2)}
@@ -239,7 +309,7 @@
 			</div>
 			<h2 class="card-title">{translate("doubaoVideo.guide.title")}</h2>
 		</div>
-		<div class="space-y-3">
+			<div class="space-y-3">
 			<div class="step-item">
 				<span class="step-number">01</span>
 				<span class="step-text">{translate("doubaoVideo.guide.steps.0")}</span>
@@ -261,6 +331,20 @@
 </div>
 
 <style>
+	.video-player {
+		width: 100%;
+		border-radius: 8px;
+		background: #000;
+		border: 1px solid var(--border-primary);
+		aspect-ratio: 9 / 16;
+	}
+
+	.action-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
 	/* 海报容器 */
 	.poster-container {
 		position: relative;
@@ -323,4 +407,15 @@
 	/* 文本颜色 */
 	.text-pink { color: var(--neon-pink); }
 	.text-green { color: var(--neon-green); }
+
+	@media (max-width: 640px) {
+		.video-player {
+			aspect-ratio: 9 / 16;
+		}
+
+		.action-row > :global(*) {
+			width: 100%;
+			justify-content: center;
+		}
+	}
 </style>

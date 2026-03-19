@@ -130,8 +130,8 @@
     }
   },
   "doubaoVideo": {
-    "title": "Doubao Video Link Parser",
-    "description": "Extract HD video download links from Doubao share URLs with video info and one-click copy",
+    "title": "Doubao Video Downloader",
+    "description": "Parse Doubao share URLs for video info, inline preview, and one-click download",
     "parser": {
       "title": "Video Parser // PARSER",
       "shareUrl": "SHARE_URL",
@@ -141,12 +141,16 @@
     },
     "info": {
       "title": "Video Info // INFO",
+      "preview": "Preview",
+      "download": "DOWNLOAD",
+      "copyStream": "COPY STREAM",
+      "backupPlay": "BACKUP STREAM",
       "poster": "Poster",
       "author": "Author",
       "resolution": "Res",
       "definition": "Def",
-      "videoUrl": "Video URL",
-      "backupUrl": "Backup",
+      "videoUrl": "Stream URL",
+      "backupUrl": "Backup Stream",
       "prompt": "AI Prompt"
     },
     "errors": {
@@ -160,7 +164,7 @@
         "Copy video share link from Doubao App",
         "Paste into the input field",
         "Click PARSE button to get video info",
-        "Copy download link and use a download tool"
+        "Preview the video inline or download it directly"
       ]
     }
   },

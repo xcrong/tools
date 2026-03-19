@@ -130,8 +130,8 @@
     }
   },
   "doubaoVideo": {
-    "title": "豆包视频链接解析工具",
-    "description": "从豆包视频分享链接获取高清视频下载地址，支持解析视频信息和一键复制下载链接",
+    "title": "豆包视频下载工具",
+    "description": "从豆包视频分享链接解析视频信息，支持页面内预览和一键下载",
     "parser": {
       "title": "视频链接解析 // PARSER",
       "shareUrl": "分享链接",
@@ -141,12 +141,16 @@
     },
     "info": {
       "title": "视频信息 // INFO",
+      "preview": "视频预览",
+      "download": "下载视频",
+      "copyStream": "复制播放链接",
+      "backupPlay": "备用线路",
       "poster": "封面",
       "author": "作者",
       "resolution": "分辨率",
       "definition": "清晰度",
-      "videoUrl": "视频链接",
-      "backupUrl": "备用链接",
+      "videoUrl": "播放链接",
+      "backupUrl": "备用播放链接",
       "prompt": "AI 提示词"
     },
     "errors": {
@@ -160,7 +164,7 @@
         "在豆包App中复制视频分享链接",
         "粘贴到输入框中",
         "点击 PARSE 按钮获取视频信息",
-        "复制下载链接并使用下载工具"
+        "在页面内直接预览或一键下载视频"
       ]
     }
   },
