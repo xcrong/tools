@@ -17,6 +17,10 @@ function ms(value: number): string {
   return `${(value / 1000).toFixed(3)}s`
 }
 
+function textAttrs(): string {
+  return `font-size="13" font-family="${TERMINAL_FONT_FAMILY}" xml:space="preserve"`
+}
+
 function buildCommandAnimation(
   line: CommandTimelineLine,
   charWidth: number,
@@ -53,19 +57,11 @@ function buildCommandAnimation(
   <g opacity="0">
     <animate attributeName="opacity" from="0" to="1"
       begin="${ms(line.startMs)}" dur="0.001s" fill="freeze"/>
-    <text x="${line.promptX}" y="${line.y}" font-size="13"
-      font-family="${TERMINAL_FONT_FAMILY}"
-      fill="${escXML(line.promptText ? '' : '')}${''}"></text>
-    <text x="${line.promptX}" y="${line.y}" font-size="13"
-      font-family="${TERMINAL_FONT_FAMILY}"
-      fill="var(--prompt-color)">${escXML(line.promptText)}</text>
-    <text x="${line.commandX}" y="${line.y}" font-size="13"
-      font-family="${TERMINAL_FONT_FAMILY}"
-      fill="var(--command-color)"
-      clip-path="url(#${clipId})">${escXML(line.commandText)}</text>
-    <text y="${line.y}" font-size="13"
-      font-family="${TERMINAL_FONT_FAMILY}"
-      fill="var(--cursor-color)">
+    <text x="${line.promptX}" y="${line.y}" ${textAttrs()} fill="${escXML(line.promptText ? '' : '')}${''}"></text>
+    <text x="${line.promptX}" y="${line.y}" ${textAttrs()} fill="var(--prompt-color)">${escXML(line.promptText)}</text>
+    <text x="${line.commandX}" y="${line.y}" ${textAttrs()}
+      fill="var(--command-color)" clip-path="url(#${clipId})">${escXML(line.commandText)}</text>
+    <text y="${line.y}" ${textAttrs()} fill="var(--cursor-color)">
       <animate attributeName="x"
         from="${line.commandX}" to="${line.commandX + commandWidth}"
         begin="${ms(line.startMs)}" dur="${ms(line.typingDurationMs)}"
@@ -83,12 +79,8 @@ function buildCommandAnimation(
 
 function renderOutputLine(line: OutputTimelineLine, padX: number): string {
   return `
-  <text x="${padX}" y="${line.y}" font-size="13"
-    font-family="${TERMINAL_FONT_FAMILY}"
-    fill="${line.color}" opacity="0">
-    <animate attributeName="opacity" from="0" to="1"
-      begin="${ms(line.startMs)}" dur="0.001s" fill="freeze"/>
-    ${escXML(line.text)}</text>`
+  <text x="${padX}" y="${line.y}" ${textAttrs()} fill="${line.color}" opacity="0"><animate attributeName="opacity" from="0" to="1"
+      begin="${ms(line.startMs)}" dur="0.001s" fill="freeze"/>${escXML(line.text)}</text>`
 }
 
 export function renderSVG(timeline: TerminalTimeline): string {
@@ -160,4 +152,3 @@ ${contentGroup}
 <text x="${layout.width / 2}" y="${layout.titleHeight / 2 + 5}" text-anchor="middle" fill="${theme.outDim}" font-size="12" font-family="${TERMINAL_FONT_FAMILY}">${escXML(timeline.promptLabel)} — bash</text>
 </svg>`
 }
-
