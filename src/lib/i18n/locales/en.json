@@ -220,5 +220,27 @@
       "emptyInput": "Please paste terminal text first!",
       "noContent": "No valid content detected, please check the format."
     }
+  },
+  "llmSkill": {
+    "title": "LLM Skill // SKILL.md",
+    "description": "A hidden skill file for LLM use. This page exposes the raw URL and one-click copy without rendering the full markdown.",
+    "cardTitle": "Skill File // ACCESS",
+    "fileLabel": "File",
+    "statusLabel": "Status",
+    "urlLabel": "Raw URL",
+    "hint": "The full markdown is intentionally not rendered here. Open the raw URL or copy the entire SKILL.md directly.",
+    "status": {
+      "loading": "Loading",
+      "failed": "Load failed",
+      "ready": "Ready"
+    },
+    "actions": {
+      "copySkill": "COPY SKILL",
+      "openRaw": "OPEN RAW",
+      "copyUrl": "COPY URL"
+    },
+    "errors": {
+      "copyFailed": "Copy failed, please copy manually"
+    }
   }
 }

@@ -220,5 +220,27 @@
       "emptyInput": "请先粘贴终端文本！",
       "noContent": "没有识别到有效内容，请检查格式。"
     }
+  },
+  "llmSkill": {
+    "title": "LLM Skill // SKILL.md",
+    "description": "面向 LLM 的隐藏技能文件，不在导航中展示。这里提供原始 URL 和一键复制能力。",
+    "cardTitle": "Skill 文件 // ACCESS",
+    "fileLabel": "文件",
+    "statusLabel": "状态",
+    "urlLabel": "原始地址",
+    "hint": "此页面不会展示完整内容；需要原文时可直接打开 URL，或点击按钮复制整个 SKILL.md。",
+    "status": {
+      "loading": "加载中",
+      "failed": "加载失败",
+      "ready": "已就绪"
+    },
+    "actions": {
+      "copySkill": "复制 SKILL",
+      "openRaw": "打开原文",
+      "copyUrl": "复制 URL"
+    },
+    "errors": {
+      "copyFailed": "复制失败，请手动复制"
+    }
   }
 }
