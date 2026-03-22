@@ -38,7 +38,13 @@
     skillOptions.find((skill) => skill.id === selectedSkillId) ?? skillOptions[0],
   )
   const publicRawUrl = $derived(`${siteUrl}${selectedSkill.rawPath}`)
-  const copyText = $derived(`READ THIS SKILL.md: ${publicRawUrl}`)
+  const copyText = $derived.by(() => {
+    if (selectedSkill.id === 'doubao-video') {
+      return `请阅读这个 SKILL.md (${publicRawUrl}) 学习如何下载豆包视频，然后帮我下载这个链接：`
+    }
+
+    return `请阅读这个 SKILL.md (${publicRawUrl}) 学习如何生成 term2svg，然后帮我处理这段终端内容：`
+  })
 
   async function verifySkill() {
     loading = true

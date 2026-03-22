@@ -234,7 +234,7 @@
     "statusLabel": "Status",
     "urlLabel": "Raw URL",
     "copyTextLabel": "Copy Text",
-    "hint": "The copy action outputs a reference line like `READ THIS SKILL.md: https://...` instead of copying the full markdown.",
+    "hint": "The copy action now outputs a ready-to-send task prompt for an LLM instead of copying the full markdown.",
     "status": {
       "loading": "Loading",
       "failed": "Load failed",

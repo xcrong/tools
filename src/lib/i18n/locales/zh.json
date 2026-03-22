@@ -234,7 +234,7 @@
     "statusLabel": "状态",
     "urlLabel": "原始地址",
     "copyTextLabel": "复制文本",
-    "hint": "复制按钮会输出类似 `READ THIS SKILL.md: https://...` 的引用语句，而不是复制全文。",
+    "hint": "复制按钮会输出可直接发给 LLM 的中文任务提示，例如“请阅读这个 SKILL.md (...) ...”，而不是复制全文。",
     "status": {
       "loading": "加载中",
       "failed": "加载失败",
