@@ -14,7 +14,7 @@ import {
 
 function getIndexPayload(): Record<string, unknown> {
   return {
-    name: 'tools-api-worker',
+    name: 'tools-api',
     routes: {
       doubaoVideo: getDoubaoRoutes(),
       term2svg: getTerm2SvgRoutes(),
