@@ -2,27 +2,54 @@
   import { onMount } from 'svelte'
   import { translate } from '$lib/i18n/store.svelte'
 
-  const rawPath = '/llm/SKILL.md'
-  const publicRawUrl = `https://tools.xcrong.me${rawPath}`
+  interface SkillOption {
+    id: 'doubao-video' | 'term2svg'
+    nameKey: string
+    descriptionKey: string
+    icon: string
+    rawPath: string
+  }
 
-  let skillContent = $state('')
+  const siteUrl = 'https://tools.xcrong.me'
+  const skillOptions: SkillOption[] = [
+    {
+      id: 'doubao-video',
+      nameKey: 'llmSkill.skills.doubaoVideo.name',
+      descriptionKey: 'llmSkill.skills.doubaoVideo.description',
+      icon: '▶',
+      rawPath: '/llm/doubao-video/SKILL.md',
+    },
+    {
+      id: 'term2svg',
+      nameKey: 'llmSkill.skills.term2svg.name',
+      descriptionKey: 'llmSkill.skills.term2svg.description',
+      icon: '$',
+      rawPath: '/llm/term2svg/SKILL.md',
+    },
+  ]
+
+  let selectedSkillId = $state<SkillOption['id']>('doubao-video')
   let loading = $state(true)
   let loadFailed = $state(false)
   let copyFeedback = $state(false)
   let urlCopyFeedback = $state(false)
 
-  async function loadSkill() {
+  const selectedSkill = $derived(
+    skillOptions.find((skill) => skill.id === selectedSkillId) ?? skillOptions[0],
+  )
+  const publicRawUrl = $derived(`${siteUrl}${selectedSkill.rawPath}`)
+  const copyText = $derived(`READ THIS SKILL.md: ${publicRawUrl}`)
+
+  async function verifySkill() {
     loading = true
     loadFailed = false
 
     try {
-      const response = await fetch(rawPath)
+      const response = await fetch(selectedSkill.rawPath, { method: 'HEAD' })
 
       if (!response.ok) {
         throw new Error(`Failed to load SKILL.md: ${response.status}`)
       }
-
-      skillContent = await response.text()
     } catch (error) {
       console.error(error)
       loadFailed = true
@@ -31,13 +58,20 @@
     }
   }
 
-  async function copySkill() {
-    if (!skillContent) {
+  function selectSkill(id: SkillOption['id']) {
+    if (selectedSkillId === id) {
       return
     }
 
+    selectedSkillId = id
+    copyFeedback = false
+    urlCopyFeedback = false
+    verifySkill()
+  }
+
+  async function copySkillInstruction() {
     try {
-      await navigator.clipboard.writeText(skillContent)
+      await navigator.clipboard.writeText(copyText)
       copyFeedback = true
       window.setTimeout(() => (copyFeedback = false), 1500)
     } catch (error) {
@@ -58,7 +92,7 @@
   }
 
   onMount(() => {
-    loadSkill()
+    verifySkill()
   })
 </script>
 
@@ -81,10 +115,26 @@
 
     <p class="skill-description">{translate('llmSkill.description')}</p>
 
+    <div class="selector-grid">
+      {#each skillOptions as skill}
+        <button
+          class:selected={skill.id === selectedSkill.id}
+          class="selector-card"
+          onclick={() => selectSkill(skill.id)}
+        >
+          <div class="selector-head">
+            <span class="selector-icon">{skill.icon}</span>
+            <span class="selector-name">{translate(skill.nameKey)}</span>
+          </div>
+          <p class="selector-description">{translate(skill.descriptionKey)}</p>
+        </button>
+      {/each}
+    </div>
+
     <div class="skill-status-row">
       <div class="skill-meta">
         <span class="meta-label">{translate('llmSkill.fileLabel')}</span>
-        <span class="meta-value">/llm/SKILL.md</span>
+        <span class="meta-value">{selectedSkill.rawPath}</span>
       </div>
       <div class="skill-meta">
         <span class="meta-label">{translate('llmSkill.statusLabel')}</span>
@@ -112,11 +162,22 @@
       />
     </div>
 
+    <label class="meta-label block mb-2" for="skill-copy-text">{translate('llmSkill.copyTextLabel')}</label>
+    <div class="url-row">
+      <textarea
+        id="skill-copy-text"
+        class="skill-copy-text"
+        readonly
+        value={copyText}
+        aria-label={translate('llmSkill.copyTextLabel')}
+      ></textarea>
+    </div>
+
     <div class="action-row">
       <button
         class="btn-primary btn-primary-filled flex-1 min-w-[180px]"
-        onclick={copySkill}
-        disabled={loading || loadFailed || !skillContent}
+        onclick={copySkillInstruction}
+        disabled={loading || loadFailed}
       >
         <span class="font-mono">
           {copyFeedback ? `✓ ${translate('common.copied').toUpperCase()}` : translate('llmSkill.actions.copySkill')}
@@ -125,7 +186,7 @@
 
       <a
         class="btn-secondary flex-1 min-w-[180px] text-center"
-        href={rawPath}
+        href={selectedSkill.rawPath}
         target="_blank"
         rel="noreferrer"
       >
@@ -145,13 +206,72 @@
 
 <style>
   .skill-card {
-    max-width: 860px;
+    max-width: 920px;
   }
 
   .skill-description {
     color: var(--text-secondary);
     line-height: 1.8;
     margin-bottom: 1.5rem;
+  }
+
+  .selector-grid {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .selector-card {
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-primary);
+    background: rgba(255, 255, 255, 0.02);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .selector-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+
+  .selector-card.selected {
+    border-color: rgba(0, 245, 255, 0.45);
+    background: rgba(0, 245, 255, 0.06);
+    box-shadow: 0 0 24px rgba(0, 245, 255, 0.08);
+  }
+
+  .selector-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .selector-icon,
+  .selector-name {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .selector-icon {
+    color: var(--neon-cyan);
+    font-size: 1rem;
+    width: 1rem;
+    text-align: center;
+  }
+
+  .selector-name {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .selector-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.7;
   }
 
   .skill-status-row {
@@ -197,7 +317,8 @@
     margin-bottom: 1.5rem;
   }
 
-  .skill-url {
+  .skill-url,
+  .skill-copy-text {
     width: 100%;
     padding: 0.9rem 1rem;
     border-radius: 8px;
@@ -206,6 +327,11 @@
     color: var(--text-primary);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.875rem;
+  }
+
+  .skill-copy-text {
+    min-height: 78px;
+    resize: vertical;
   }
 
   .action-row {
@@ -223,6 +349,7 @@
   }
 
   @media (min-width: 720px) {
+    .selector-grid,
     .skill-status-row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }

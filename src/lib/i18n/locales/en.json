@@ -49,6 +49,11 @@
         "title": "term2svg",
         "description": "Convert terminal text to animated SVG with multiple themes and typing effects",
         "tags": ["SVG", "animation"]
+      },
+      "llmSkill": {
+        "title": "LLM Skill",
+        "description": "A skill entry for LLMs with the raw SKILL.md URL and one-click copy access",
+        "tags": ["LLM", "skill"]
       }
     },
     "status": {
@@ -223,21 +228,32 @@
   },
   "llmSkill": {
     "title": "LLM Skill // SKILL.md",
-    "description": "A hidden skill file for LLM use. This page exposes the raw URL and one-click copy without rendering the full markdown.",
-    "cardTitle": "Skill File // ACCESS",
+    "description": "This page now exposes separate SKILL.md files per capability. Select a skill, then copy the LLM reference line or open the raw file directly.",
+    "cardTitle": "Skill Selector // ACCESS",
     "fileLabel": "File",
     "statusLabel": "Status",
     "urlLabel": "Raw URL",
-    "hint": "The full markdown is intentionally not rendered here. Open the raw URL or copy the entire SKILL.md directly.",
+    "copyTextLabel": "Copy Text",
+    "hint": "The copy action outputs a reference line like `READ THIS SKILL.md: https://...` instead of copying the full markdown.",
     "status": {
       "loading": "Loading",
       "failed": "Load failed",
       "ready": "Ready"
     },
     "actions": {
-      "copySkill": "COPY SKILL",
+      "copySkill": "COPY PROMPT",
       "openRaw": "OPEN RAW",
       "copyUrl": "COPY URL"
+    },
+    "skills": {
+      "doubaoVideo": {
+        "name": "Doubao Video",
+        "description": "Parse Doubao share links and return video metadata, stream URLs, and download URLs."
+      },
+      "term2svg": {
+        "name": "term2svg",
+        "description": "Convert terminal text into animated SVG output for demos and terminal-style sharing."
+      }
     },
     "errors": {
       "copyFailed": "Copy failed, please copy manually"

@@ -49,6 +49,11 @@
         "title": "term2svg",
         "description": "将终端文本转换为动画 SVG，支持多种主题和打字效果",
         "tags": ["SVG", "动画"]
+      },
+      "llmSkill": {
+        "title": "LLM Skill",
+        "description": "为大模型准备的技能入口，提供 SKILL.md 原文地址和一键复制能力",
+        "tags": ["LLM", "Skill"]
       }
     },
     "status": {
@@ -223,21 +228,32 @@
   },
   "llmSkill": {
     "title": "LLM Skill // SKILL.md",
-    "description": "面向 LLM 的隐藏技能文件，不在导航中展示。这里提供原始 URL 和一键复制能力。",
-    "cardTitle": "Skill 文件 // ACCESS",
+    "description": "这里不再维护总技能文件，而是按能力拆成独立 SKILL.md。选择一个技能后，可复制给 LLM 的引用语句或直接打开原文。",
+    "cardTitle": "Skill 选择 // ACCESS",
     "fileLabel": "文件",
     "statusLabel": "状态",
     "urlLabel": "原始地址",
-    "hint": "此页面不会展示完整内容；需要原文时可直接打开 URL，或点击按钮复制整个 SKILL.md。",
+    "copyTextLabel": "复制文本",
+    "hint": "复制按钮会输出类似 `READ THIS SKILL.md: https://...` 的引用语句，而不是复制全文。",
     "status": {
       "loading": "加载中",
       "failed": "加载失败",
       "ready": "已就绪"
     },
     "actions": {
-      "copySkill": "复制 SKILL",
+      "copySkill": "复制引用语句",
       "openRaw": "打开原文",
       "copyUrl": "复制 URL"
+    },
+    "skills": {
+      "doubaoVideo": {
+        "name": "豆包视频下载",
+        "description": "解析豆包分享链接，获取视频信息、播放地址和下载地址。"
+      },
+      "term2svg": {
+        "name": "term2svg",
+        "description": "把终端文本转换成动画 SVG，适合终端演示和录屏替代。"
+      }
     },
     "errors": {
       "copyFailed": "复制失败，请手动复制"

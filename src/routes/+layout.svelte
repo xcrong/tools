@@ -78,6 +78,10 @@
 
 			<!-- 右侧：语言切换 + 主题切换 -->
 			<div class="flex items-center gap-2">
+				<a href="/llm-skill" class="nav-shortcut">
+					<span class="nav-shortcut-label">SKILL.md</span>
+				</a>
+
 				<!-- 语言切换按钮 -->
 				<button
 					onclick={switchLanguage}
@@ -204,6 +208,38 @@
 		color: var(--neon-cyan);
 		border-color: var(--neon-cyan);
 		box-shadow: 0 0 15px rgba(0, 245, 255, 0.2);
+	}
+
+	.nav-shortcut {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 36px;
+		padding: 0 0.9rem;
+		border-radius: 6px;
+		background:
+			linear-gradient(135deg, rgba(255, 238, 0, 0.16), rgba(0, 245, 255, 0.08)),
+			var(--bg-tertiary);
+		border: 1px solid rgba(255, 238, 0, 0.35);
+		color: var(--neon-yellow);
+		text-decoration: none;
+		transition: all 0.2s ease;
+		box-shadow: 0 0 18px rgba(255, 238, 0, 0.08);
+	}
+
+	.nav-shortcut:hover {
+		border-color: var(--neon-yellow);
+		color: var(--neon-yellow);
+		box-shadow: 0 0 18px rgba(255, 238, 0, 0.18);
+		transform: translateY(-1px);
+	}
+
+	.nav-shortcut-label {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		white-space: nowrap;
 	}
 
 	/* 主内容区域 */
